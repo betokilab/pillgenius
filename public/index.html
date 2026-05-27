@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>약천재 — 약/영양제 상호작용 체커</title>
+<style>
+:root{--primary:#2563EB;--primary-dark:#1D4ED8;--danger:#DC2626;--warning:#D97706;--caution:#F59E0B;--safe:#16A34A;--bg:#F8FAFC;--card:#FFF;--border:#E2E8F0;--text:#0F172A;--muted:#64748B;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text)}
+nav{background:#0F172A;color:#fff;padding:0 24px;display:flex;align-items:center;gap:24px;height:56px;position:sticky;top:0;z-index:100}
+.nav-logo{font-size:18px;font-weight:700;color:#fff;cursor:pointer}
+.nav-links{display:flex;gap:4px;flex:1}
+.nav-link{color:#94A3B8;font-size:14px;padding:6px 12px;border-radius:8px;cursor:pointer;border:none;background:none;transition:all .15s}
+.nav-link:hover,.nav-link.active{color:#fff;background:rgba(255,255,255,.1)}
+.page{display:none}.page.active{display:block}
+/* HERO */
+.hero{background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 100%);color:#fff;padding:72px 24px 60px;text-align:center}
+.hero h1{font-size:42px;font-weight:800;line-height:1.2;margin-bottom:16px}
+.hero h1 span{color:#60A5FA}
+.hero p{font-size:18px;color:#94A3B8;margin-bottom:40px}
+/* SEARCH */
+.search-area{max-width:700px;margin:0 auto}
+.search-box{background:#fff;border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.search-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.search-tab{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);font-size:13px;cursor:pointer;color:var(--muted);background:#fff;transition:all .15s}
+.search-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.drug-slots{display:flex;flex-direction:column;gap:8px;flex:1}
+.drug-slot{position:relative}
+.drug-slot input{width:100%;padding:10px 80px 10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;color:var(--text);transition:border-color .15s;outline:none}
+.drug-slot input:focus{border-color:var(--primary)}
+.drug-slot input::placeholder{color:#CBD5E1}
+.slot-badge{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:4px}
+.slot-tag{background:#EFF6FF;color:var(--primary);font-size:11px;padding:2px 6px;border-radius:4px}
+.slot-clear{color:#CBD5E1;cursor:pointer;font-size:14px;padding:2px;display:none}
+.slot-clear.show{display:block}
+.autocomplete{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;max-height:220px;overflow-y:auto}
+.ac-item{padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:14px}
+.ac-item:hover{background:#F1F5F9}
+.ac-cat{font-size:11px;color:var(--muted);background:var(--bg);padding:2px 6px;border-radius:4px;margin-left:auto}
+.search-row{display:flex;gap:12px;align-items:flex-end}
+.check-btn{background:var(--primary);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
+.check-btn:hover{background:var(--primary-dark)}
+.add-btn{background:none;border:1.5px dashed var(--border);color:var(--muted);border-radius:10px;padding:8px 14px;font-size:13px;cursor:pointer;width:100%;margin-top:10px;transition:all .15s}
+.add-btn:hover{border-color:var(--primary);color:var(--primary)}
+/* STATS */
+.stats{display:flex;justify-content:center;gap:40px;margin-top:32px}
+.stat-num{font-size:28px;font-weight:800;color:#60A5FA}
+.stat-label{font-size:12px;color:#94A3B8;margin-top:2px;text-align:center}
+.api-badge{background:rgba(255,255,255,.1);color:#94A3B8;font-size:12px;padding:4px 10px;border-radius:6px;display:inline-block;margin-top:12px}
+/* SEVERITY */
+.severity-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;justify-content:center}
+.sev-item{display:flex;align-items:center;gap:6px;font-size:13px;color:#fff;padding:4px 12px;border-radius:16px}
+.sev-safe{background:#16A34A}.sev-caution{background:#F59E0B}.sev-warning{background:#DC2626}.sev-danger{background:#7F1D1D}
+/* RESULT */
+.result-section{max-width:820px;margin:32px auto;padding:0 24px}
+.disclaimer{background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:12px 16px;font-size:13px;color:#92400E;margin-bottom:16px}
+.result-card{background:#fff;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.result-header{padding:20px 24px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--border)}
+.result-badge{padding:6px 16px;border-radius:20px;font-size:14px;font-weight:700}
+.b-safe{background:#DCFCE7;color:#16A34A}.b-caution{background:#FEF3C7;color:#D97706}
+.b-warning{background:#FEE2E2;color:#DC2626}.b-danger{background:#DC2626;color:#fff}
+.result-title{font-size:16px;font-weight:600}
+.result-body{padding:20px 24px}
+.pair-row{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.pair-row:last-child{border-bottom:none}
+.pair-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:2px}
+.i-safe{background:#DCFCE7}.i-caution{background:#FEF3C7}.i-warning{background:#FEE2E2}
+.pair-info{flex:1}
+.pair-drugs{font-size:14px;font-weight:600;margin-bottom:4px}
+.pair-effect{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:4px}
+.pair-manage{font-size:12px;color:#374151;background:#F8FAFC;padding:6px 10px;border-radius:6px;margin-top:6px}
+.source-tag{font-size:11px;color:var(--muted);background:var(--bg);padding:2px 8px;border-radius:4px;display:inline-block;margin-top:4px}
+/* FEATURES */
+.main-content{max-width:1100px;margin:48px auto;padding:0 24px}
+.section-title{font-size:20px;font-weight:700;margin-bottom:20px}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.feature-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:20px;cursor:pointer;transition:all .15s}
+.feature-card:hover{border-color:var(--primary);box-shadow:0 4px 16px rgba(37,99,235,.1);transform:translateY(-2px)}
+.feature-icon{font-size:28px;margin-bottom:12px}
+.feature-name{font-size:15px;font-weight:600;margin-bottom:6px}
+.feature-desc{font-size:13px;color:var(--muted);line-height:1.5}
+/* CABINET */
+.page-header{background:#fff;border-bottom:1px solid var(--border);padding:32px 24px 24px}
+.page-header h1{font-size:28px;font-weight:800;margin-bottom:8px}
+.page-header p{color:var(--muted);font-size:15px}
+.cab-grid{max-width:1000px;margin:32px auto;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.cab-card{background:#fff;border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
+.cab-header{padding:16px 20px;border-bottom:1px solid var(--border);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:space-between}
+.drug-item{padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);transition:background .1s}
+.drug-item:last-child{border-bottom:none}
+.drug-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.drug-name-wrap{flex:1}
+.drug-nm{font-size:14px;font-weight:500}
+.drug-cat{font-size:12px;color:var(--muted);margin-top:2px}
+.drug-rm{color:#CBD5E1;font-size:16px;cursor:pointer;padding:4px}
+.drug-rm:hover{color:var(--danger)}
+.cab-form{padding:16px 20px}
+.cab-form input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;margin-bottom:8px;outline:none}
+.cab-form input:focus{border-color:var(--primary)}
+.cab-form button{width:100%;background:var(--primary);color:#fff;border:none;padding:10px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+.matrix-cell{display:flex;align-items:flex-start;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.matrix-cell:last-child{border-bottom:none}
+.matrix-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.matrix-text{font-size:13px}
+.matrix-pair{font-weight:500}
+.matrix-status{font-size:12px;margin-top:2px}
+/* SYMPTOMS */
+.symptom-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;max-width:900px;margin:24px auto;padding:0 24px}
+.sym-card{background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .15s}
+.sym-card:hover{border-color:var(--primary);background:#EFF6FF}
+.sym-icon{font-size:24px;margin-bottom:8px}
+.sym-name{font-size:14px;font-weight:500}
+/* GUIDE */
+.guide-content{max-width:900px;margin:0 auto;padding:0 24px}
+.tab-bar{display:flex;border-bottom:1px solid var(--border);background:#fff;padding:0 24px}
+.tab-btn{padding:14px 20px;font-size:14px;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:500}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.guide-panel{background:#fff;border:1px solid var(--border);border-radius:0 0 12px 12px;padding:24px;display:none}
+.guide-panel.active{display:block}
+.i-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.i-row:last-child{border-bottom:none}
+.i-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+/* LOADING */
+.loading{display:none;text-align:center;padding:24px;color:var(--muted)}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1E293B;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+/* FOOTER */
+footer{background:#0F172A;color:#475569;padding:40px 24px;margin-top:60px}
+.footer-inner{max-width:1100px;margin:0 auto;font-size:13px}
+@media(max-width:640px){.hero h1{font-size:28px}.search-row{flex-direction:column}.cab-grid{grid-template-columns:1fr}.nav-links{display:none}.stats{gap:20px}.stat-num{font-size:22px}}
+</style>
+</head>
+<body>
+<nav>
+  <span class="nav-logo" onclick="showPage('home')">약천재</span>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="showPage('home',this)">상호작용 체크</button>
+    <button class="nav-link" onclick="showPage('cabinet',this)">내 약통</button>
+    <button class="nav-link" onclick="showPage('symptoms',this)">증상검색</button>
+    <button class="nav-link" onclick="showPage('guide',this)">복약 가이드</button>
+  </div>
+</nav>
+<div class="toast" id="toast"></div>
+
+<!-- ===== HOME ===== -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <h1>약 먹기 전에,<br><span>한 번만 물어보세요</span></h1>
+    <p>44,120개 의약품 · 식약처 DUR 기반 · 천재가 3초 만에 분석</p>
+    <div class="search-area">
+      <div class="search-box">
+        <div class="search-tabs">
+          <button class="search-tab active" onclick="setCategory('all',this)">전체</button>
+          <button class="search-tab" onclick="setCategory('drug',this)">의약품</button>
+          <button class="search-tab" onclick="setCategory('supplement',this)">건강기능식품</button>
+        </div>
+        <div class="search-row">
+          <div class="drug-slots" id="drugSlots">
+            <div class="drug-slot" data-idx="0">
+              <input type="text" placeholder="약 이름 또는 성분명 (예: 타이레놀, 아세트아미노펜)"
+                oninput="onSearch(this,0)" onfocus="onSearch(this,0)" onblur="hideAc(0)" autocomplete="off">
+              <div class="slot-badge">
+                <span class="slot-tag">약 1</span>
+                <span class="slot-clear" onclick="clearSlot(0)">✕</span>
+              </div>
+              <div class="autocomplete" id="ac-0" style="display:none"></div>
+            </div>
+            <div class="drug-slot" data-idx="1">
+              <input type="text" placeholder="비교할 두 번째 약/영양제"
+                oninput="onSearch(this,1)" onfocus="onSearch(this,1)" onblur="hideAc(1)" autocomplete="off">
+              <div class="slot-badge">
+                <span class="slot-tag">약 2</span>
+                <span class="slot-clear" onclick="clearSlot(1)">✕</span>
+              </div>
+              <div class="autocomplete" id="ac-1" style="display:none"></div>
+            </div>
+          </div>
+          <button class="check-btn" onclick="checkInteraction()">천재한테 물어보기 →</button>
+        </div>
+        <button class="add-btn" onclick="addSlot()">+ 약 더 추가하기</button>
+      </div>
+    </div>
+    <div class="severity-legend">
+      <span class="sev-item sev-safe">✓ 안전</span>
+      <span class="sev-item sev-caution">⚠ 주의</span>
+      <span class="sev-item sev-warning">✗ 경고</span>
+      <span class="sev-item sev-danger">☠ 위험</span>
+    </div>
+    <div class="stats" id="statsArea">
+      <div class="stat-item"><div class="stat-num" id="stat-drugs">-</div><div class="stat-label">의약품</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-supp">-</div><div class="stat-label">건강기능식품</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-inter">-</div><div class="stat-label">상호작용 검증</div></div>
+    </div>
+    <div class="api-badge">📊 식약처 공공데이터 · DUR 의약품안전사용서비스</div>
+  </div>
+
+  <div class="result-section" id="resultSection" style="display:none">
+    <div class="disclaimer">💡 약천재는 참고용입니다. 실제 복약은 의사·약사의 최종 판단을 따르세요.</div>
+    <div class="result-card" id="resultCard"></div>
+    <div class="loading" id="checkLoading"><span class="spinner"></span>천재가 분석하는 중...</div>
+  </div>
+
+  <div class="main-content">
+    <div class="section-title">약천재가 도와드립니다</div>
+    <div class="feature-grid">
+      <div class="feature-card" onclick="showPage('cabinet')"><div class="feature-icon">💊</div><div class="feature-name">내 약통</div><div class="feature-desc">복용 중인 약을 담아두고, 전체 조합 안전성을 한 번에 확인하세요</div></div>
+      <div class="feature-card" onclick="showPage('symptoms')"><div class="feature-icon">🔍</div><div class="feature-name">증상으로 찾기</div><div class="feature-desc">두통·발열·소화불량 — 증상을 말하면 천재가 약을 찾아줍니다</div></div>
+      <div class="feature-card" onclick="showPage('guide')"><div class="feature-icon">📚</div><div class="feature-name">복약 가이드</div><div class="feature-desc">술·커피·우유와 약의 관계, 천재만 아는 복약 꿀팁 총정리</div></div>
+      <div class="feature-card" onclick="toast('곧 오픈합니다 — 기대해 주세요!')"><div class="feature-icon">🤰</div><div class="feature-name">임신·수유 약관리</div><div class="feature-desc">임신 중 먹어도 되는 약, 절대 안 되는 약 — 준비 중</div></div>
+      <div class="feature-card" onclick="toast('곧 오픈합니다 — 기대해 주세요!')"><div class="feature-icon">🔄</div><div class="feature-name">부작용 역추적</div><div class="feature-desc">이상한 증상, 혹시 약 때문? 원인 약물 거꾸로 찾기 — 준비 중</div></div>
+      <div class="feature-card" onclick="window.location.href='/admin'"><div class="feature-icon">⚙️</div><div class="feature-name">백오피스</div><div class="feature-desc">데이터 관리 및 식약처 API 동기화</div></div>
+    </div>
+  </div>
+  <footer><div class="footer-inner">약천재는 정보 제공 서비스입니다. 의학적 진단·처방을 대체하지 않으며, 최종 판단은 의사·약사에게 맡기세요.<br>데이터 출처: 식품의약품안전처 공공데이터 · DUR 의약품안전사용서비스 © 약천재</div></footer>
+</div>
+
+<!-- ===== CABINET ===== -->
+<div class="page" id="page-cabinet">
+  <div class="page-header"><div style="max-width:1000px;margin:0 auto"><h1>💊 내 약통</h1><p>매일 먹는 약을 담아두고, 전체 조합이 안전한지 한 번에 확인하세요</p></div></div>
+  <div class="cab-grid">
+    <div>
+      <div class="cab-card">
+        <div class="cab-header">내 약통 <span style="color:var(--muted);font-weight:400;font-size:13px" id="cabCount">0개</span></div>
+        <div id="cabList"></div>
+        <div class="cab-form">
+          <input type="text" id="cabInput" placeholder="약/영양제 이름 검색..." oninput="cabSearch(this)" autocomplete="off">
+          <div id="cabAc" style="display:none"></div>
+          <button onclick="checkCabinet()">🧠 천재한테 전체 분석 맡기기</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="cab-card">
+        <div class="cab-header">안전 분석</div>
+        <div id="cabResult"><div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">약통에 2개 이상 담은 후<br>천재한테 분석을 맡겨보세요 🧠</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SYMPTOMS ===== -->
+<div class="page" id="page-symptoms">
+  <div class="page-header"><div style="max-width:900px;margin:0 auto"><h1>🔍 증상으로 찾기</h1><p>증상을 말하면 천재가 관련 의약품과 주의사항을 찾아드립니다</p></div></div>
+  <div style="max-width:900px;margin:24px auto;padding:0 24px">
+    <div class="section-title">자주 찾는 증상</div>
+  </div>
+  <div class="symptom-grid" id="symptomGrid"></div>
+  <div style="max-width:900px;margin:24px auto;padding:0 24px" id="symResult" style="display:none"></div>
+</div>
+
+<!-- ===== GUIDE ===== -->
+<div class="page" id="page-guide">
+  <div class="page-header"><div style="max-width:900px;margin:0 auto"><h1>📚 복약 가이드</h1><p>천재가 알려주는, 약 먹을 때 꼭 알아야 할 생활 꿀팁</p></div></div>
+  <div style="max-width:900px;margin:0 auto">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="guideTab(this,'g-alc')">🍺 술</button>
+      <button class="tab-btn" onclick="guideTab(this,'g-cof')">☕ 커피</button>
+      <button class="tab-btn" onclick="guideTab(this,'g-milk')">🥛 우유</button>
+      <button class="tab-btn" onclick="guideTab(this,'g-time')">⏰ 복용 시간</button>
+    </div>
+    <div id="g-alc" class="guide-panel active" style="display:block">
+      <div class="i-row"><div class="i-icon" style="background:#FEE2E2">✗</div><div><strong>타이레놀(아세트아미노펜) + 알코올</strong><p style="font-size:13px;color:var(--muted);margin-top:4px">간독성 위험 급증. 음주 중이거나 만성 음주자는 복용 금지.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FEE2E2">✗</div><div><strong>항생제(메트로니다졸) + 알코올</strong><p style="font-size:13px;color:var(--muted);margin-top:4px">심한 구역·구토·두근거림. 복용 후 최소 48시간 금주.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FEF3C7">⚠</div><div><strong>수면제·진정제 + 알코올</strong><p style="font-size:13px;color:var(--muted);margin-top:4px">중추신경 억제 효과 상승, 호흡 억제 위험.</p></div></div>
+    </div>
+    <div id="g-cof" class="guide-panel">
+      <div class="i-row"><div class="i-icon" style="background:#FEF3C7">⚠</div><div><strong>철분제 + 카페인</strong><p style="font-size:13px;color:var(--muted);margin-top:4px">철분 흡수 방해. 철분제 복용 2시간 후에 커피 섭취.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FEF3C7">⚠</div><div><strong>갑상선약(레보티록신) + 커피</strong><p style="font-size:13px;color:var(--muted);margin-top:4px">흡수율 저하. 공복 복용 후 30~60분 후 커피 섭취.</p></div></div>
+    </div>
+    <div id="g-milk" class="guide-panel">
+      <div class="i-row"><div class="i-icon" style="background:#FEE2E2">✗</div><div><strong>항생제(퀴놀론·테트라사이클린) + 우유</strong><p style="font-size:13px;color:var(--muted);margin-top:4px">칼슘이 항생제 흡수 50% 이상 방해. 2시간 간격 필수.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FEF3C7">⚠</div><div><strong>철분제 + 우유</strong><p style="font-size:13px;color:var(--muted);margin-top:4px">칼슘이 철분 흡수 방해. 공복 또는 물과 함께 복용.</p></div></div>
+    </div>
+    <div id="g-time" class="guide-panel">
+      <div class="i-row"><div class="i-icon" style="background:#EFF6FF">❓</div><div><strong>식전·식후가 헷갈릴 때</strong><p style="font-size:13px;color:var(--muted);margin-top:4px">일반적으로 식후 30분 복용이 위 자극 감소. 당뇨약·갑상선약은 식전/공복 복용 필수.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#EFF6FF">❓</div><div><strong>약 먹는 것을 잊었을 때</strong><p style="font-size:13px;color:var(--muted);margin-top:4px">다음 복용 시간이 반 이상 남았으면 즉시 복용. 그 이상 지났으면 건너뛰고 다음 시간에 정상 복용. 절대 두 배 복용 금지.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = ''; // 같은 서버이므로 빈 문자열 (상대경로)
+let slots = [null, null]; // { seq, name } or null
+let slotCount = 2;
+let searchCategory = 'all';
+let cabDrugs = []; // { seq, name, category, color }
+const COLORS = ['#2563EB','#16A34A','#D97706','#7C3AED','#DC2626'];
+
+// ── 검색 ──────────────────────────────────────────────────
+async function onSearch(input, idx) {
+  const q = input.value.trim();
+  if (slots[idx] && input.value === slots[idx].name) return;
+  slots[idx] = null;
+  toggleClear(idx, !!q);
+  const ac = document.getElementById('ac-' + idx);
+  if (!q) { ac.style.display = 'none'; return; }
+
+  const res = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}&category=${searchCategory}&limit=8`).catch(() => null);
+  if (!res || !res.ok) return;
+  const items = await res.json();
+
+  if (!items.length) { ac.style.display = 'none'; return; }
+  ac.innerHTML = items.map(d =>
+    `<div class="ac-item" onmousedown="selectDrug(${idx},'${d.item_seq}','${d.item_name.replace(/'/g,"\\'")}','${d.category}')">
+      <span>${d.item_name}</span>
+      <span style="font-size:12px;color:var(--muted)">${d.ingredient||''}</span>
+      <span class="ac-cat">${d.category === 'drug' ? '의약품' : '건기식'}</span>
+    </div>`
+  ).join('');
+  ac.style.display = 'block';
+}
+
+function selectDrug(idx, seq, name, category) {
+  slots[idx] = { seq, name, category };
+  const slot = document.getElementById('drugSlots').querySelectorAll('.drug-slot')[idx];
+  slot.querySelector('input').value = name;
+  slot.querySelector('.slot-clear').classList.add('show');
+  document.getElementById('ac-' + idx).style.display = 'none';
+}
+
+function hideAc(idx) { setTimeout(() => { const el = document.getElementById('ac-' + idx); if (el) el.style.display = 'none'; }, 200); }
+function toggleClear(idx, show) {
+  const slot = document.getElementById('drugSlots').querySelectorAll('.drug-slot')[idx];
+  if (slot) slot.querySelector('.slot-clear').classList.toggle('show', show);
+}
+function clearSlot(idx) {
+  slots[idx] = null;
+  const slot = document.getElementById('drugSlots').querySelectorAll('.drug-slot')[idx];
+  slot.querySelector('input').value = '';
+  toggleClear(idx, false);
+}
+
+function setCategory(cat, btn) {
+  searchCategory = cat;
+  document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function addSlot() {
+  if (slotCount >= 5) { toast('최대 5개까지 가능합니다'); return; }
+  const idx = slotCount++;
+  slots.push(null);
+  const div = document.createElement('div');
+  div.className = 'drug-slot';
+  div.dataset.idx = idx;
+  div.innerHTML = `<input type="text" placeholder="${idx+1}번째 약 검색" oninput="onSearch(this,${idx})" onfocus="onSearch(this,${idx})" onblur="hideAc(${idx})" autocomplete="off">
+    <div class="slot-badge"><span class="slot-tag">약 ${idx+1}</span><span class="slot-clear" onclick="clearSlot(${idx})">✕</span></div>
+    <div class="autocomplete" id="ac-${idx}" style="display:none"></div>`;
+  document.getElementById('drugSlots').appendChild(div);
+}
+
+// ── 상호작용 체크 ──────────────────────────────────────────
+async function checkInteraction() {
+  const selected = slots.filter(Boolean);
+  if (selected.length < 2) { toast('약을 2개 이상 선택해야 천재가 분석할 수 있어요'); return; }
+
+  document.getElementById('resultSection').style.display = 'block';
+  document.getElementById('resultCard').innerHTML = '';
+  document.getElementById('checkLoading').style.display = 'block';
+  document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const res = await fetch(`${API}/api/interactions/check`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ drug_seqs: selected.map(s => s.seq) })
+  }).catch(() => null);
+
+  document.getElementById('checkLoading').style.display = 'none';
+
+  if (!res || !res.ok) { toast('오류가 발생했습니다. 다시 시도해주세요.'); return; }
+  const data = await res.json();
+  renderResult(data, selected);
+}
+
+function renderResult(data, selected) {
+  const sevClass = { 1:'b-safe', 2:'b-caution', 3:'b-warning', 4:'b-danger' };
+  const sevLabel = { 1:'안전', 2:'주의', 3:'경고', 4:'위험' };
+  const iconBg = { 1:'i-safe', 2:'i-caution', 3:'i-warning', 4:'i-warning' };
+  const iconChar = { 1:'✓', 2:'⚠', 3:'✗', 4:'☠' };
+  const sevColor = { 1:'var(--safe)', 2:'var(--caution)', 3:'var(--danger)', 4:'var(--danger)' };
+
+  let html = `<div class="result-header">
+    <div class="result-badge ${sevClass[data.overall_severity]}">${sevLabel[data.overall_severity]}</div>
+    <div class="result-title">${selected.map(s => s.name).join(' + ')}</div>
+  </div><div class="result-body">`;
+
+  for (const pair of data.pairs) {
+    const sev = pair.severity;
+    if (pair.interaction) {
+      html += `<div class="pair-row">
+        <div class="pair-icon ${iconBg[sev]}">${iconChar[sev]}</div>
+        <div class="pair-info">
+          <div class="pair-drugs" style="color:${sevColor[sev]}">${pair.drug_a.item_name} + ${pair.drug_b.item_name}</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px">${pair.interaction.clinical_effect}</div>
+          <div class="pair-effect">${pair.interaction.mechanism}</div>
+          ${pair.interaction.management ? `<div class="pair-manage">📌 ${pair.interaction.management}</div>` : ''}
+          <span class="source-tag">출처: ${pair.interaction.source}</span>
+        </div>
+      </div>`;
+    } else {
+      html += `<div class="pair-row">
+        <div class="pair-icon i-safe">✓</div>
+        <div class="pair-info">
+          <div class="pair-drugs">${pair.drug_a.item_name} + ${pair.drug_b.item_name}</div>
+          <div class="pair-effect" style="color:var(--safe)">이 조합은 안전합니다 ✓</div>
+          <span class="source-tag">DUR 기준</span>
+        </div>
+      </div>`;
+    }
+  }
+
+  html += `<div style="margin-top:16px">
+    <button onclick="addResultToCabinet()" style="background:var(--bg);border:1.5px solid var(--border);color:var(--text);padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer">
+      💊 내 약통에 담기
+    </button>
+  </div></div>`;
+
+  document.getElementById('resultCard').innerHTML = html;
+  window._lastSelected = selected;
+}
+
+function addResultToCabinet() {
+  if (!window._lastSelected) return;
+  window._lastSelected.forEach(s => {
+    if (!cabDrugs.find(d => d.seq === s.seq)) {
+      cabDrugs.push({ seq: s.seq, name: s.name, category: s.category, color: COLORS[cabDrugs.length % 5] });
+    }
+  });
+  renderCabList();
+  toast('내 약통에 담겼어요 💊');
+}
+
+// ── 복약함 ──────────────────────────────────────────────────
+function renderCabList() {
+  const el = document.getElementById('cabList');
+  document.getElementById('cabCount').textContent = `${cabDrugs.length}개`;
+  if (!cabDrugs.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">아직 약통이 비어있어요<br>위에서 약을 검색해 담아보세요 💊</div>';
+    return;
+  }
+  el.innerHTML = cabDrugs.map((d, i) =>
+    `<div class="drug-item">
+      <div class="drug-dot" style="background:${d.color}"></div>
+      <div class="drug-name-wrap"><div class="drug-nm">${d.name}</div><div class="drug-cat">${d.category === 'drug' ? '의약품' : '건강기능식품'}</div></div>
+      <span class="drug-rm" onclick="removeCab(${i})">✕</span>
+    </div>`
+  ).join('');
+}
+
+function removeCab(idx) { cabDrugs.splice(idx, 1); renderCabList(); }
+
+let cabAcItems = [];
+async function cabSearch(input) {
+  const q = input.value.trim();
+  const acEl = document.getElementById('cabAc');
+  if (!q) { acEl.style.display = 'none'; return; }
+  const res = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}&limit=6`).catch(() => null);
+  if (!res) return;
+  const items = await res.json();
+  cabAcItems = items;
+  if (!items.length) { acEl.style.display = 'none'; return; }
+  acEl.innerHTML = `<div class="autocomplete" style="position:static;display:block">${items.map((d,i) =>
+    `<div class="ac-item" onmousedown="addToCab(${i})">${d.item_name} <span class="ac-cat">${d.category==='drug'?'의약품':'건기식'}</span></div>`
+  ).join('')}</div>`;
+  acEl.style.display = 'block';
+}
+
+function addToCab(idx) {
+  const d = cabAcItems[idx];
+  if (!cabDrugs.find(x => x.seq === d.item_seq)) {
+    cabDrugs.push({ seq: d.item_seq, name: d.item_name, category: d.category, color: COLORS[cabDrugs.length % 5] });
+  }
+  renderCabList();
+  document.getElementById('cabInput').value = '';
+  document.getElementById('cabAc').style.display = 'none';
+}
+
+async function checkCabinet() {
+  if (cabDrugs.length < 2) { toast('약통에 2개 이상 담아야 분석할 수 있어요'); return; }
+  const resEl = document.getElementById('cabResult');
+  resEl.innerHTML = '<div style="padding:20px;text-align:center"><span class="spinner" style="display:inline-block"></span></div>';
+
+  const res = await fetch(`${API}/api/interactions/check`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ drug_seqs: cabDrugs.map(d => d.seq) })
+  }).catch(() => null);
+
+  if (!res) { resEl.innerHTML = '<div style="padding:16px;color:var(--danger)">오류가 발생했습니다</div>'; return; }
+  const data = await res.json();
+
+  const sevColor = { 1:'var(--safe)', 2:'var(--caution)', 3:'var(--warning)', 4:'var(--danger)' };
+  const issues = data.pairs.filter(p => p.severity > 1);
+
+  let html = '';
+  if (!issues.length) {
+    html = '<div class="matrix-cell"><div class="matrix-dot" style="background:var(--safe)"></div><div class="matrix-text"><div class="matrix-pair">모든 조합 안전 ✓</div><div class="matrix-status" style="color:var(--safe)">천재가 확인했습니다 — 이 조합은 안전해요</div></div></div>';
+  } else {
+    html = issues.map(p => `
+      <div class="matrix-cell">
+        <div class="matrix-dot" style="background:${sevColor[p.severity]}"></div>
+        <div class="matrix-text">
+          <div class="matrix-pair">${p.drug_a.item_name} + ${p.drug_b.item_name}</div>
+          <div class="matrix-status" style="color:${sevColor[p.severity]}">${p.severity >= 3 ? '⚠' : 'ℹ'} ${p.interaction?.clinical_effect || p.severity_label}</div>
+        </div>
+      </div>`).join('');
+    html += `<div style="padding:12px 20px;background:#FFF7ED;border-top:1px solid var(--border);font-size:12px;color:#92400E">⚠️ 이슈 ${issues.length}건 발견 — 약사 상담을 꼭 받아보세요</div>`;
+  }
+  resEl.innerHTML = html;
+}
+
+// ── 증상 검색 ──────────────────────────────────────────────
+const SYMPTOMS = [
+  { name:'두통', icon:'🤕' }, { name:'발열', icon:'🌡️' }, { name:'소화불량', icon:'😮‍💨' },
+  { name:'알레르기', icon:'🤧' }, { name:'불면', icon:'😴' }, { name:'혈전예방', icon:'🩸' },
+  { name:'당뇨', icon:'💉' }, { name:'고혈압', icon:'❤️' }, { name:'고지혈증', icon:'🔬' },
+  { name:'위염', icon:'🔥' }, { name:'갑상선', icon:'🦋' }, { name:'감염', icon:'🦠' },
+];
+
+function renderSymptoms() {
+  document.getElementById('symptomGrid').innerHTML = SYMPTOMS.map(s =>
+    `<div class="sym-card" onclick="loadSymptom('${s.name}')"><div class="sym-icon">${s.icon}</div><div class="sym-name">${s.name}</div></div>`
+  ).join('');
+}
+
+async function loadSymptom(name) {
+  const resEl = document.getElementById('symResult');
+  resEl.style.display = 'block';
+  resEl.innerHTML = '<div style="padding:20px;text-align:center"><span class="spinner" style="display:inline-block"></span></div>';
+
+  const res = await fetch(`${API}/api/symptoms?symptom=${encodeURIComponent(name)}`).catch(() => null);
+  if (!res) return;
+  const data = await res.json();
+
+  if (!data.drugs || !data.drugs.length) {
+    resEl.innerHTML = `<div style="padding:16px;color:var(--muted)">${name}에 대한 정보가 없습니다.</div>`;
+    return;
+  }
+
+  resEl.innerHTML = `<div class="result-card">
+    <div class="result-header"><div class="result-badge b-safe">${name}</div><div class="result-title">관련 약물 ${data.drugs.length}개</div></div>
+    <div class="result-body">
+      <div style="margin-bottom:12px">${data.drugs.map(d =>
+        `<span style="display:inline-block;background:#EFF6FF;color:var(--primary);padding:5px 12px;border-radius:16px;font-size:13px;margin:4px 4px 4px 0;cursor:pointer" onclick="prefillSearch('${d.item_seq}','${d.item_name}','${d.category}')">${d.item_name}</span>`
+      ).join('')}</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">약품명을 클릭하면 검색창에 자동입력됩니다. 상호작용 체크 탭에서 천재한테 물어보세요.</div>
+    </div>
+  </div>`;
+  resEl.scrollIntoView({ behavior: 'smooth' });
+}
+
+function prefillSearch(seq, name, category) {
+  showPage('home');
+  slots[0] = { seq, name, category };
+  const input = document.getElementById('drugSlots').querySelector('input');
+  input.value = name;
+  toggleClear(0, true);
+  toast(name + ' 이(가) 약 1에 입력되었습니다');
+}
+
+// ── 가이드 탭 ──────────────────────────────────────────────
+function guideTab(btn, id) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.guide-panel').forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+  const panel = document.getElementById(id);
+  panel.style.display = 'block';
+  panel.classList.add('active');
+}
+
+// ── 페이지 이동 ──────────────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else {
+    const map = { home:0, cabinet:1, symptoms:2, guide:3 };
+    const links = document.querySelectorAll('.nav-link');
+    if (map[name] !== undefined) links[map[name]].classList.add('active');
+  }
+  window.scrollTo(0, 0);
+}
+
+// ── 통계 로드 ──────────────────────────────────────────────
+async function loadStats() {
+  const res = await fetch(`${API}/api/admin/stats`).catch(() => null);
+  if (!res) return;
+  const d = await res.json();
+  document.getElementById('stat-drugs').textContent = d.drugs?.toLocaleString() || '-';
+  document.getElementById('stat-supp').textContent = d.supplements?.toLocaleString() || '-';
+  document.getElementById('stat-inter').textContent = d.interactions?.toLocaleString() || '-';
+}
+
+// ── Toast ───────────────────────�

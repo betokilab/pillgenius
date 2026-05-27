@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>약천재 Admin</title>
+<style>
+:root{--primary:#2563EB;--danger:#DC2626;--success:#16A34A;--warning:#D97706;--sb:#0F172A;--bg:#F1F5F9;--card:#fff;--border:#E2E8F0;--text:#0F172A;--muted:#64748B;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+.sidebar{width:210px;background:var(--sb);display:flex;flex-direction:column;flex-shrink:0}
+.sb-logo{padding:18px 16px;border-bottom:1px solid #1E293B}
+.sb-logo .brand{font-size:15px;font-weight:700;color:#fff}
+.sb-logo .sub{font-size:11px;color:#475569;margin-top:2px}
+.sb-nav{padding:10px 0;flex:1;overflow-y:auto}
+.sb-sec{padding:8px 14px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#475569}
+.sb-item{display:flex;align-items:center;gap:8px;padding:9px 14px;color:#94A3B8;cursor:pointer;font-size:13px;border-left:3px solid transparent;transition:all .1s}
+.sb-item:hover{color:#fff;background:#1E293B}
+.sb-item.active{color:#fff;background:#1E293B;border-left-color:var(--primary)}
+.sb-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 20px;height:50px;display:flex;align-items:center;gap:12px}
+.topbar-title{font-size:14px;font-weight:600;flex:1}
+.btn{padding:6px 12px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+.btn-sm{padding:4px 9px;font-size:12px}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.content{flex:1;overflow-y:auto;padding:20px}
+.page{display:none}.page.active{display:block}
+/* STAT */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.stat-label{font-size:12px;color:var(--muted);margin-bottom:6px}
+.stat-value{font-size:26px;font-weight:700}
+.stat-change{font-size:12px;margin-top:4px;color:var(--success)}
+/* TABLE */
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.table-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.table-head h3{font-size:14px;font-weight:600}
+.tbl-search{flex:1;max-width:260px}
+.tbl-search input{width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;outline:none}
+.tbl-search input:focus{border-color:var(--primary)}
+table{width:100%;border-collapse:collapse}
+thead{background:#F8FAFC}
+th{padding:9px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F8FAFC}
+.td-actions{display:flex;gap:6px}
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-blue{background:#DBEAFE;color:#1D4ED8}.b-green{background:#DCFCE7;color:#15803D}
+.b-yellow{background:#FEF3C7;color:#B45309}.b-red{background:#FEE2E2;color:#B91C1C}
+.b-gray{background:#F1F5F9;color:#475569}.b-purple{background:#EDE9FE;color:#6D28D9}
+.sev-1{background:#DCFCE7;color:#15803D}.sev-2{background:#FEF3C7;color:#B45309}
+.sev-3{background:#FEE2E2;color:#B91C1C}.sev-4{background:#B91C1C;color:#fff}
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-size:15px;font-weight:700}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted)}
+.modal-body{padding:22px}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.fg{margin-bottom:14px}
+.fl{font-size:13px;font-weight:500;margin-bottom:5px;display:block}
+.fi{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;outline:none;font-family:inherit}
+.fi:focus{border-color:var(--primary)}
+.fs{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;outline:none;background:#fff;cursor:pointer}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* LOG */
+.log-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.log-item:last-child{border-bottom:none}
+.log-time{color:var(--muted);white-space:nowrap;font-size:12px;min-width:110px}
+/* SYNC */
+.sync-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.sync-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sync-dot{width:8px;height:8px;border-radius:50%}
+.dot-g{background:var(--success);box-shadow:0 0 0 3px #BBF7D0}
+.dot-y{background:var(--warning);box-shadow:0 0 0 3px #FDE68A}
+.dot-r{background:var(--danger);box-shadow:0 0 0 3px #FECACA;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px #FECACA}50%{box-shadow:0 0 0 6px #FECACA}}
+/* ALERT */
+.alert{border-radius:8px;padding:11px 14px;font-size:13px;display:flex;gap:8px;align-items:flex-start;margin-bottom:14px}
+.alert-w{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+/* PAGINATION */
+.pager{display:flex;align-items:center;gap:6px;padding:11px 14px;border-top:1px solid var(--border)}
+.pg-btn{padding:4px 9px;border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;background:#fff}
+.pg-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.pg-info{font-size:12px;color:var(--muted);margin-left:auto}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:#1E293B;color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;z-index:9999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sb-logo"><div class="brand">약천재 Admin</div><div class="sub">데이터 관리</div></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">대시보드</div>
+    <div class="sb-item active" onclick="goto('dashboard',this)"><span>📊</span> 대시보드</div>
+    <div class="sb-sec">데이터</div>
+    <div class="sb-item" onclick="goto('drugs',this)"><span>💊</span> 의약품</div>
+    <div class="sb-item" onclick="goto('supplements',this)"><span>🌿</span> 건강기능식품</div>
+    <div class="sb-item" onclick="goto('interactions',this)"><span>⚡</span> 상호작용</div>
+    <div class="sb-sec">시스템</div>
+    <div class="sb-item" onclick="goto('sync',this)"><span>🔄</span> API 동기화</div>
+    <div class="sb-item" onclick="goto('logs',this)"><span>📋</span> 로그</div>
+  </nav>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle">대시보드</div>
+    <a href="/" style="text-decoration:none"><button class="btn btn-outline btn-sm">← 사용자 화면</button></a>
+    <button class="btn btn-primary btn-sm" onclick="openModal('addDrug')">+ 데이터 추가</button>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card"><div class="stat-label">총 의약품</div><div class="stat-value" id="s-drugs" style="color:var(--primary)">-</div><div class="stat-change" id="s-drugs-ch"></div></div>
+        <div class="stat-card"><div class="stat-label">건강기능식품</div><div class="stat-value" id="s-supp" style="color:var(--success)">-</div></div>
+        <div class="stat-card"><div class="stat-label">상호작용</div><div class="stat-value" id="s-inter" style="color:#7C3AED">-</div></div>
+        <div class="stat-card"><div class="stat-label">위험 상호작용</div><div class="stat-value" id="s-danger" style="color:var(--danger)">-</div><div class="stat-change" style="color:var(--danger)">경고·위험 등급</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="table-card">
+          <div class="table-head"><h3>⚡ 위험 상호작용 Top 5</h3></div>
+          <table><thead><tr><th>약물 A</th><th>약물 B</th><th>등급</th></tr></thead>
+          <tbody id="topInteractions"></tbody></table>
+        </div>
+        <div class="table-card">
+          <div class="table-head"><h3>📋 최근 로그</h3></div>
+          <div style="padding:4px 14px" id="recentLogs"><div style="padding:12px;color:var(--muted);font-size:13px">로딩 중...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DRUGS -->
+    <div class="page" id="page-drugs">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div><h2 style="font-size:18px;font-weight:700">의약품 관리</h2><p style="font-size:13px;color:var(--muted);margin-top:2px">매일 03:00 식약처 자동 동기화</p></div>
+        <button class="btn btn-primary" onclick="openModal('addDrug')">+ 수동 추가</button>
+      </div>
+      <div class="alert alert-w">⚠️ 수동 추가/수정 항목은 다음 자동 동기화 시 덮어쓰여질 수 있습니다. 식약처 원본 오류인 경우만 편집하세요.</div>
+      <div class="table-card">
+        <div class="table-head">
+          <h3>의약품 목록</h3>
+          <div class="tbl-search"><input type="text" placeholder="약품명, 성분명 검색..." id="drugSearch" oninput="loadDrugs(1)"></div>
+          <span style="font-size:12px;color:var(--muted);margin-left:auto" id="drugTotal"></span>
+        </div>
+        <table><thead><tr><th>품목코드</th><th>약품명</th><th>성분명</th><th>분류</th><th>제조사</th><th>작업</th></tr></thead>
+        <tbody id="drugTableBody"></tbody></table>
+        <div class="pager" id="drugPager"></div>
+      </div>
+    </div>
+
+    <!-- SUPPLEMENTS -->
+    <div class="page" id="page-supplements">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div><h2 style="font-size:18px;font-weight:700">건강기능식품 관리</h2></div>
+        <button class="btn btn-primary" onclick="openModal('addDrug')">+ 수동 추가</button>
+      </div>
+      <div class="table-card">
+        <div class="table-head">
+          <h3>건기식 목록</h3>
+          <div class="tbl-search"><input type="text" placeholder="제품명, 성분 검색..." id="suppSearch" oninput="loadSupps(1)"></div>
+          <span style="font-size:12px;color:var(--muted);margin-left:auto" id="suppTotal"></span>
+        </div>
+        <table><thead><tr><th>품목코드</th><th>제품명</th><th>주요 성분</th><th>효과</th><th>작업</th></tr></thead>
+        <tbody id="suppTableBody"></tbody></table>
+        <div class="pager" id="suppPager"></div>
+      </div>
+    </div>
+
+    <!-- INTERACTIONS -->
+    <div class="page" id="page-interactions">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div><h2 style="font-size:18px;font-weight:700">상호작용 관리</h2></div>
+        <button class="btn btn-primary" onclick="openModal('addInteraction')">+ 수동 추가</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap" id="sevFilter">
+        <button class="btn btn-outline btn-sm active-filter" onclick="setInterFilter('all',this)">전체</button>
+        <button class="btn btn-sm sev-1" onclick="setInterFilter('1',this)">✓ 안전</button>
+        <button class="btn btn-sm sev-2" onclick="setInterFilter('2',this)">⚠ 주의</button>
+        <button class="btn btn-sm sev-3" onclick="setInterFilter('3',this)">✗ 경고</button>
+        <button class="btn btn-sm sev-4" onclick="setInterFilter('4',this)">☠ 위험</button>
+      </div>
+      <div class="table-card">
+        <div class="table-head"><h3>상호작용 목록</h3><span style="font-size:12px;color:var(--muted);margin-left:auto" id="interTotal"></span></div>
+        <table><thead><tr><th>약물 A</th><th>약물 B</th><th>심각도</th><th>임상 효과</th><th>관리 방법</th><th>출처</th><th>작업</th></tr></thead>
+        <tbody id="interTableBody"></tbody></table>
+        <div class="pager" id="interPager"></div>
+      </div>
+    </div>
+
+    <!-- SYNC -->
+    <div class="page" id="page-sync">
+      <div style="margin-bottom:14px"><h2 style="font-size:18px;font-weight:700">API 동기화</h2><p style="font-size:13px;color:var(--muted);margin-top:2px">식약처 공공데이터 수집 상태</p></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="sync-card"><div class="sync-head"><strong style="font-size:13px">💊 의약품 (e약은요)</strong><div class="sync-dot dot-g"></div></div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8">API: DrbEasyDrugInfoService<br>스케줄: 매일 03:00<br>상태: <span style="color:var(--success)">정상</span></div>
+          <button class="btn btn-outline btn-sm" style="width:100%;margin-top:10px" onclick="runSync('의약품')">▶ 지금 실행</button>
+        </div>
+        <div class="sync-card"><div class="sync-head"><strong style="font-size:13px">⚡ DUR 상호작용</strong><div class="sync-dot dot-y"></div></div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8">API: DURPrdlstInfoService03<br>스케줄: 매일 03:00<br>상태: <span style="color:var(--warning)">API 키 미설정</span></div>
+          <button class="btn btn-primary btn-sm" style="width:100%;margin-top:10px" onclick="runSync('DUR')">▶ 지금 실행</button>
+        </div>
+        <div class="sync-card"><div class="sync-head"><strong style="font-size:13px">🌿 건강기능식품</strong><div class="sync-dot dot-g"></div></div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8">API: FoodNtrIrdntInfoService<br>스케줄: 매일 04:00</div>
+          <button class="btn btn-outline btn-sm" style="width:100%;margin-top:10px" onclick="runSync('건강기능식품')">▶ 지금 실행</button>
+        </div>
+        <div class="sync-card" style="background:#FFF7ED;border-color:#FED7AA">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#92400E">🔑 API 키 설정 안내</div>
+          <div style="font-size:12px;color:#92400E;line-height:1.7">1. data.go.kr 에서 API 키 발급<br>2. 프로젝트 .env 파일에 입력:<br><code style="background:#fff;padding:2px 6px;border-radius:4px;font-size:11px">MFDS_API_KEY=발급받은키</code><br>3. npm run sync 실행</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGS -->
+    <div class="page" id="page-logs">
+      <div style="margin-bottom:14px"><h2 style="font-size:18px;font-weight:700">작업 로그</h2></div>
+      <div class="table-card">
+        <div class="table-head"><h3>전체 로그</h3></div>
+        <div style="padding:0 14px" id="logList"><div style="padding:12px;color:var(--muted);font-size:13px">로딩 중...</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADD DRUG MODAL -->
+<div class="overlay" id="modal-addDrug">
+  <div class="modal">
+    <div class="modal-head"><h3>의약품 수동 추가</h3><button class="modal-close" onclick="closeModal('addDrug')">✕</button></div>
+    <div class="modal-body">
+      <div class="fr"><div class="fg"><label class="fl">품목코드</label><input class="fi" id="f-seq" placeholder="비워두면 자동생성"></div><div class="fg"><label class="fl">약품명 *</label><input class="fi" id="f-name" placeholder="예: 타이레놀 500mg"></div></div>
+      <div class="fg"><label class="fl">성분명</label><input class="fi" id="f-ingredient" placeholder="예: 아세트아미노펜 500mg"></div>
+      <div class="fr"><div class="fg"><label class="fl">분류</label><select class="fs" id="f-class"><option>해열진통제</option><option>소염진통제</option><option>항생제</option><option>항응고제</option><option>당뇨약</option><option>고혈압약</option><option>기타</option></select></div><div class="fg"><label class="fl">제조사</label><input class="fi" id="f-entp" placeholder="예: 한국얀센"></div></div>
+      <div class="fg"><label class="fl">효능·효과</label><textarea class="fi" id="f-effect" rows="2" placeholder="복용 목적 및 효능"></textarea></div>
+      <div class="fg"><label class="fl">주의사항</label><textarea class="fi" id="f-caution" rows="2" placeholder="복용 주의사항"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('addDrug')">취소</button><button class="btn btn-primary" onclick="saveDrug()">저장</button></div>
+  </div>
+</div>
+
+<!-- ADD INTERACTION MODAL -->
+<div class="overlay" id="modal-addInteraction">
+  <div class="modal">
+    <div class="modal-head"><h3>상호작용 추가</h3><button class="modal-close" onclick="closeModal('addInteraction')">✕</button></div>
+    <div class="modal-body">
+      <div class="fr"><div class="fg"><label class="fl">약물 A 품목코드 *</label><input class="fi" id="i-a" placeholder="예: D001"></div><div class="fg"><label class="fl">약물 B 품목코드 *</label><input class="fi" id="i-b" placeholder="예: D004"></div></div>
+      <div class="fg"><label class="fl">심각도</label><select class="fs" id="i-sev"><option value="1">1 — 안전</option><option value="2">2 — 주의</option><option value="3">3 — 경고</option><option value="4">4 — 위험</option></select></div>
+      <div class="fg"><label class="fl">상호작용 기전</label><textarea class="fi" id="i-mech" rows="2" placeholder="약리학적 기전"></textarea></div>
+      <div class="fg"><label class="fl">임상 효과</label><input class="fi" id="i-effect" placeholder="환자에게 나타나는 증상"></div>
+      <div class="fg"><label class="fl">관리 방법</label><input class="fi" id="i-manage" placeholder="복약 지도 내용"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('addInteraction')">취소</button><button class="btn btn-primary" onclick="saveInteraction()">저장</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+const TITLES = {dashboard:'대시보드',drugs:'의약품 관리',supplements:'건강기능식품 관리',interactions:'상호작용 관리',sync:'API 동기화',logs:'작업 로그'};
+let interSeverity = 'all';
+let drugPage = 1, suppPage = 1, interPage = 1;
+
+function goto(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('pageTitle').textContent = TITLES[name] || name;
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'drugs') loadDrugs(1);
+  if (name === 'supplements') loadSupps(1);
+  if (name === 'interactions') loadInteractions(1);
+  if (name === 'logs') loadLogs();
+}
+
+// ── 대시보드 ───────────────────────────────────────────────
+async function loadDashboard() {
+  const r = await fetch(`${API}/api/admin/stats`).catch(() => null);
+  if (!r) return;
+  const d = await r.json();
+  document.getElementById('s-drugs').textContent = d.drugs?.toLocaleString() || '0';
+  document.getElementById('s-supp').textContent = d.supplements?.toLocaleString() || '0';
+  document.getElementById('s-inter').textContent = d.interactions?.toLocaleString() || '0';
+  document.getElementById('s-danger').textContent = d.danger_interactions?.toLocaleString() || '0';
+
+  // 위험 상호작용
+  const ir = await fetch(`${API}/api/admin/interactions?severity=4&limit=5`).catch(() => null);
+  if (ir) {
+    const id = await ir.json();
+    document.getElementById('topInteractions').innerHTML = (id.data || []).map(i =>
+      `<tr><td>${i.drug_a_name}</td><td>${i.drug_b_name}</td><td><span class="badge sev-${i.severity}">${i.severity_label}</span></td></tr>`
+    ).join('') || '<tr><td colspan="3" style="color:var(--muted);text-align:center">없음</td></tr>';
+  }
+
+  document.getElementById('recentLogs').innerHTML = `
+    <div class="log-item"><div class="log-time">방금</div><div>✅ 서버 실행 중</div></div>
+    <div class="log-item"><div class="log-time">-</div><div>📊 DB: 의약품 ${d.drugs || 0}건, 상호작용 ${d.interactions || 0}건</div></div>
+    <div class="log-item"><div class="log-time">-</div><div>🔑 식약처 API 키: ${d.last_sync ? '✅ 동기화 이력 있음' : '⚠️ 미설정 (data.go.kr에서 발급)'}</div></div>
+  `;
+}
+
+// ── 의약품 ────────────────────────────────────────────────
+async function loadDrugs(page) {
+  drugPage = page || 1;
+  const q = document.getElementById('drugSearch')?.value || '';
+  const r = await fetch(`${API}/api/admin/drugs?q=${encodeURIComponent(q)}&category=drug&page=${drugPage}&limit=20`).catch(() => null);
+  if (!r) return;
+  const d = await r.json();
+  document.getElementById('drugTotal').textContent = `총 ${d.total?.toLocaleString() || 0}건`;
+  document.getElementById('drugTableBody').innerHTML = (d.data || []).map(drug =>
+    `<tr>
+      <td style="color:var(--muted);font-size:12px">${drug.item_seq}</td>
+      <td><strong>${drug.item_name}</strong></td>
+      <td style="color:var(--muted)">${drug.ingredient || '-'}</td>
+      <td><span class="badge b-blue">${drug.class_name || '-'}</span></td>
+      <td>${drug.entp_name || '-'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-outline btn-sm" onclick="toast('편집 기능 - 실서비스에서 활성화')">편집</button>
+        <button class="btn btn-sm" style="background:#FEF2F2;color:var(--danger);border:none" onclick="deleteDrug(${drug.id})">삭제</button>
+      </div></td>
+    </tr>`
+  ).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">데이터 없음</td></tr>';
+  renderPager('drugPager', d.total, drugPage, 20, loadDrugs);
+}
+
+async function deleteDrug(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  const r = await fetch(`${API}/api/admin/drugs/${id}`, { method: 'DELETE' });
+  if (r.ok) { toast('삭제되었습니다'); loadDrugs(drugPage); }
+}
+
+// ── 건기식 ────────────────────────────────────────────────
+async function loadSupps(page) {
+  suppPage = page || 1;
+  const q = document.getElementById('suppSearch')?.value || '';
+  const r = await fetch(`${API}/api/admin/drugs?q=${encodeURIComponent(q)}&category=supplement&page=${suppPage}&limit=20`).catch(() => null);
+  if (!r) return;
+  const d = await r.json();
+  document.getElementById('suppTotal').textContent = `총 ${d.total?.toLocaleString() || 0}건`;
+  document.getElementById('suppTableBody').innerHTML = (d.data || []).map(drug =>
+    `<tr>
+      <td style="color:var(--muted);font-size:12px">${drug.item_seq}</td>
+      <td><strong>${drug.item_name}</strong></td>
+      <td style="color:var(--muted)">${drug.ingredient || '-'}</td>
+      <td style="font-size:12px;max-width:200px">${drug.effect || '-'}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="toast('편집 기능')">편집</button></td>
+    </tr>`
+  ).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">데이터 없음</td></tr>';
+  renderPager('suppPager', d.total, suppPage, 20, loadSupps);
+}
+
+// ── 상호작용 ──────────────────────────────────────────────
+async function loadInteractions(page) {
+  interPage = page || 1;
+  const sevParam = interSeverity !== 'all' ? `&severity=${interSeverity}` : '';
+  const r = await fetch(`${API}/api/admin/interactions?page=${interPage}&limit=20${sevParam}`).catch(() => null);
+  if (!r) return;
+  const d = await r.json();
+  document.getElementById('interTotal').textContent = `총 ${d.total?.toLocaleString() || 0}건`;
+  document.getElementById('interTableBody').innerHTML = (d.data || []).map(i =>
+    `<tr>
+      <td><strong>${i.drug_a_name}</strong><br><small style="color:var(--muted)">${i.drug_a_ingredient||''}</small></td>
+      <td><strong>${i.drug_b_name}</strong><br><small style="color:var(--muted)">${i.drug_b_ingredient||''}</small></td>
+      <td><span class="badge sev-${i.severity}">${i.severity_label}</span></td>
+      <td style="font-size:12px;max-width:160px">${i.clinical_effect || '-'}</td>
+      <td style="font-size:12px;max-width:160px">${i.management || '-'}</td>
+      <td><span class="badge b-gray">${i.source}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="toast('편집 기능')">편집</button></td>
+    </tr>`
+  ).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">데이터 없음</td></tr>';
+  renderPager('interPager', d.total, interPage, 20, loadInteractions);
+}
+
+function setInterFilter(sev, btn) {
+  interSeverity = sev;
+  document.querySelectorAll('#sevFilter button').forEach(b => b.style.opacity = '0.5');
+  btn.style.opacity = '1';
+  loadInteractions(1);
+}
+
+// ── 로그 ──────────────────────────────────────────────────
+async function loadLogs() {
+  document.getElementById('logList').innerHTML = `
+    <div class="log-item"><div class="log-time">현재</div><div>✅ 서버 정상 실행 중 (port ${window.location.port || 3000})</div></div>
+    <div class="log-item"><div class="log-time">-</div><div>📝 식약처 API 키 발급 후 npm run sync 실행 시 동기화 로그가 기록됩니다</div></div>
+    <div class="log-item"><div class="log-time">-</div><div>ℹ️ 현재 샘플 데이터로 운영 중 | data.go.kr에서 API 키 발급 후 실데이터로 전환 가능</div></div>
+  `;
+}
+
+// ── 페이지네이션 ──────────────────────────────────────────
+function renderPager(id, total, cur, limit, fn) {
+  const pages = Math.ceil(total / limit);
+  const el = document.getElementById(id);
+  if (pages <= 1) { el.innerHTML = ''; return; }
+  let html = '';
+  for (let i = 1; i <= Math.min(pages, 5); i++) {
+    html += `<button class="pg-btn ${i === cur ? 'active' : ''}" onclick="${fn.name}(${i})">${i}</button>`;
+  }
+  if (pages > 5) html += `<span style="padding:0 4px">…</span><button class="pg-btn" onclick="${fn.name}(${pages})">${pages}</button>`;
+  html += `<span class="pg-info">${total?.toLocaleString()}건</span>`;
+  el.innerHTML = html;
+}
+
+// ── 모달 ──────────────────────────────────────────────────
+function openModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
+function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+
+async function saveDrug() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { toast('약품명은 필수입니다'); return; }
+  const body = {
+    item_seq: document.getElementById('f-seq').value.trim() || undefined,
+    item_name: name,
+    ingredient: document.getElementById('f-ingredient').value,
+    class_name: document.getElementById('f-class').value,
+    entp_name: document.getElementById('f-entp').value,
+    effect: document.getElementById('f-effect').value,
+    caution: document.getElementById('f-caution').value,
+    category: 'drug',
+  };
+  const r = await fetch(`${API}/api/admin/drugs`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (r.ok) { closeModal('addDrug'); toast('저장되었습니다'); loadDrugs(1); }
+}
+
+async function saveInteraction() {
+  const a = document.getElementById('i-a').value.trim();
+  const b = document.getElementById('i-b').value.trim();
+  if (!a || !b) { toast('약물 A, B 모두 필요합니다'); return; }
+  const sev = Number(document.getElementById('i-sev').value);
+  const labels = { 1:'안전', 2:'주의', 3:'경고', 4:'위험' };
+  const body = { drug_a_seq: a, drug_b_seq: b, severity: sev, severity_label: labels[sev], mechanism: document.getElementById('i-mech').value, clinical_effect: document.getElementById('i-effect').value, management: document.getElementById('i-manage').value };
+  const r = await fetch(`${API}/api/admin/interactions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (r.ok) { closeModal('addInteraction'); toast('저장되었습니다'); loadInteractions(1); }
+}
+
+// ── 동기화 ───────────────────────────────────────────────
+function runSync(name) {
+  toast(`${name} 동기화 시작... (API 키 필요)`);
+  setTimeout(() => toast('.env 파일에 MFDS_API_KEY 설정 후 npm run sync 실행'), 2000);
+}
+
+// ── 모달 외부 클릭 닫기 ──────────────────────────────────
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// 초기 로드
+loadDashboard();
+</script>
+</body>
+</html>
