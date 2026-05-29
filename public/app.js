@@ -320,6 +320,56 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// ── AI 챗봇 ──────────────────────────────────────────────
+function openChatBot() {
+  document.getElementById('chatModal').classList.add('open');
+  document.getElementById('chatInput').focus();
+}
+function closeChatBot() {
+  document.getElementById('chatModal').classList.remove('open');
+}
+// 모달 바깥 클릭 시 닫기
+document.addEventListener('click', e => {
+  const modal = document.getElementById('chatModal');
+  const box = modal?.querySelector('.chat-modal__box');
+  const fab = document.getElementById('fabChat');
+  if (modal?.classList.contains('open') && !box?.contains(e.target) && !fab?.contains(e.target)) {
+    closeChatBot();
+  }
+});
+
+function appendMsg(text, role) {
+  const wrap = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `chat-msg chat-msg--${role}`;
+  div.innerHTML = `<div class="chat-msg__bubble">${text}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return div;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  appendMsg(q, 'user');
+  const typing = appendMsg('답변을 생성 중이에요...', 'bot chat-msg--typing');
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: q })
+    });
+    const data = await r.json();
+    typing.remove();
+    appendMsg(data.reply || '죄송해요, 잠시 후 다시 시도해 주세요.', 'bot');
+  } catch {
+    typing.remove();
+    appendMsg('서버 연결에 실패했어요. 잠시 후 다시 시도해 주세요.', 'bot');
+  }
+}
+
 // ── 초기화 ────────────────────────────────────────────────
 renderSymptoms();
 renderCabList();
