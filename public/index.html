@@ -22,6 +22,9 @@
 <meta name="naver-site-verification" content="038683acbbdef168463312bba5ad1bbbe401784e">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
 <style>
 /* ── 토스 디자인 시스템 ─────────────────────────────── */
 :root {
@@ -64,15 +67,32 @@ nav {
 .nav-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
   text-decoration: none;
 }
-.nav-logo-text {
-  font-size: 17px;
+.nav-logo-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0px;
+  line-height: 1;
+}
+.nav-logo-ko {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+.nav-logo-en {
+  font-family: 'Dancing Script', cursive;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  letter-spacing: 0.2px;
+  line-height: 1.2;
 }
 .nav-links {
   display: flex;
@@ -675,16 +695,20 @@ footer {
 <nav>
   <span class="nav-logo" onclick="showPage('home')">
     <!-- 알약 SVG 아이콘 -->
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="28" height="28" rx="8" fill="#3182F6"/>
-      <path d="M9 14C9 11.2386 11.2386 9 14 9C16.7614 9 19 11.2386 19 14C19 16.7614 16.7614 19 14 19C11.2386 19 9 16.7614 9 14Z" fill="white" fill-opacity="0.2"/>
-      <path d="M9 14H19" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M9 14C9 11.2386 11.2386 9 14 9C16.7614 9 19 11.2386 19 14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M9 14C9 16.7614 11.2386 19 14 19C16.7614 19 19 16.7614 19 14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-      <circle cx="21" cy="8" r="2.5" fill="#60AAFE"/>
-      <path d="M21 6.5V7.5M20.5 8H21.5" stroke="white" stroke-width="0.8" stroke-linecap="round"/>
+    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="30" height="30" rx="9" fill="#3182F6"/>
+      <path d="M10 15C10 12.2386 12.2386 10 15 10C17.7614 10 20 12.2386 20 15C20 17.7614 17.7614 20 15 20C12.2386 20 10 17.7614 10 15Z" fill="white" fill-opacity="0.15"/>
+      <path d="M10 15H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M10 15C10 12.2386 12.2386 10 15 10C17.7614 10 20 12.2386 20 15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M10 15C10 17.7614 12.2386 20 15 20C17.7614 20 20 17.7614 20 15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="22" cy="9" r="2.5" fill="#93C5FD"/>
+      <path d="M22 7.8V8.6M21.4 9H22.6" stroke="white" stroke-width="0.9" stroke-linecap="round"/>
     </svg>
-    <span class="nav-logo-text">약천재</span>
+    <!-- 로고 텍스트: 한글 고딕 + 영문 필기체 -->
+    <div class="nav-logo-lockup">
+      <span class="nav-logo-ko">약천재</span>
+      <span class="nav-logo-en">pill genius</span>
+    </div>
   </span>
   <div class="nav-links">
     <button class="nav-link active" onclick="showPage('home',this)">상호작용 체크</button>
