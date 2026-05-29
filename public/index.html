@@ -67,32 +67,35 @@ nav {
 .nav-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
   cursor: pointer;
   text-decoration: none;
 }
-.nav-logo-lockup {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0px;
-  line-height: 1;
-}
 .nav-logo-ko {
   font-family: 'Pretendard', sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.3px;
-  line-height: 1.1;
+  font-size: 18px;
+  font-weight: 800;
+  color: #191F28;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  vertical-align: middle;
+}
+.nav-logo-divider {
+  width: 1px;
+  height: 14px;
+  background: #D1D5DB;
+  margin: 0 10px;
+  display: inline-block;
+  vertical-align: middle;
 }
 .nav-logo-en {
   font-family: 'Dancing Script', cursive;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 600;
-  color: var(--blue);
+  color: #3182F6;
   letter-spacing: 0.2px;
-  line-height: 1.2;
+  line-height: 1;
+  vertical-align: middle;
 }
 .nav-links {
   display: flex;
@@ -694,21 +697,9 @@ footer {
 <!-- ===== 네비게이션 ===== -->
 <nav>
   <span class="nav-logo" onclick="showPage('home')">
-    <!-- 알약 SVG 아이콘 -->
-    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="30" height="30" rx="9" fill="#3182F6"/>
-      <path d="M10 15C10 12.2386 12.2386 10 15 10C17.7614 10 20 12.2386 20 15C20 17.7614 17.7614 20 15 20C12.2386 20 10 17.7614 10 15Z" fill="white" fill-opacity="0.15"/>
-      <path d="M10 15H20" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M10 15C10 12.2386 12.2386 10 15 10C17.7614 10 20 12.2386 20 15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M10 15C10 17.7614 12.2386 20 15 20C17.7614 20 20 17.7614 20 15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-      <circle cx="22" cy="9" r="2.5" fill="#93C5FD"/>
-      <path d="M22 7.8V8.6M21.4 9H22.6" stroke="white" stroke-width="0.9" stroke-linecap="round"/>
-    </svg>
-    <!-- 로고 텍스트: 한글 고딕 + 영문 필기체 -->
-    <div class="nav-logo-lockup">
-      <span class="nav-logo-ko">약천재</span>
-      <span class="nav-logo-en">pill genius</span>
-    </div>
+    <span class="nav-logo-ko">약천재</span>
+    <span class="nav-logo-divider"></span>
+    <span class="nav-logo-en">Pill Genius</span>
   </span>
   <div class="nav-links">
     <button class="nav-link active" onclick="showPage('home',this)">상호작용 체크</button>
