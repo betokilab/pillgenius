@@ -149,6 +149,26 @@ const interactions = [...INTERACTIONS];
 //  API 라우트
 // ══════════════════════════════════════════════════════════════
 
+// ── sitemap.xml (Vercel 스크립트 주입 방지) ───────────────────
+app.get('/sitemap.xml', (req, res) => {
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.pillgenius.co.kr/</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`);
+});
+
+// ── robots.txt ───────────────────────────────────────────────
+app.get('/robots.txt', (req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+  res.send(`User-agent: *\nAllow: /\n\nSitemap: https://www.pillgenius.co.kr/sitemap.xml`);
+});
+
 // ── 디버그 엔드포인트 ─────────────────────────────────────────
 app.get('/api/debug', async (req, res) => {
   const keySet = !!MFDS_KEY;
