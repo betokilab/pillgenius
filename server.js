@@ -1,13 +1,57 @@
 require('dotenv').config();
-const express = require('express');
-const cors    = require('cors');
-const path    = require('path');
+const express  = require('express');
+const cors     = require('cors');
+const path     = require('path');
+const fetch    = require('node-fetch');
 
-const PORT = process.env.PORT || 3000;
-const app  = express();
+const PORT        = process.env.PORT || 3000;
+const MFDS_KEY    = process.env.MFDS_API_KEY || '';
+const MFDS_BASE   = 'https://apis.data.go.kr/1471000';
+const DRUG_EP     = `${MFDS_BASE}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
+const DUR_EP      = `${MFDS_BASE}/DURPrdlstInfoService03/getDURPrdlstInfoList03`;
+
+const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ── 식약처 API 호출 헬퍼 ─────────────────────────────────────
+async function callMFDS(endpoint, params) {
+  const url = new URL(endpoint);
+  url.searchParams.set('ServiceKey', MFDS_KEY);
+  url.searchParams.set('type', 'json');
+  url.searchParams.set('numOfRows', params.numOfRows || 10);
+  url.searchParams.set('pageNo', params.pageNo || 1);
+  if (params.itemName) url.searchParams.set('itemName', params.itemName);
+  if (params.itemSeq)  url.searchParams.set('itemSeq',  params.itemSeq);
+
+  const res  = await fetch(url.toString(), { timeout: 5000 });
+  const json = await res.json();
+  const body = json?.body;
+  if (!body) return [];
+  const items = body.items;
+  if (!items) return [];
+  return Array.isArray(items) ? items : [items];
+}
+
+// e약은요 응답 → 내부 포맷 변환
+function transformDrug(item) {
+  // 성분명: itemName 괄호 안에 있는 경우가 많음
+  const ingMatch = (item.itemName || '').match(/\(([^)]+)\)$/);
+  const ingredient = ingMatch ? ingMatch[1] : '';
+  return {
+    item_seq:   String(item.itemSeq  || item.ITEM_SEQ  || ''),
+    item_name:  String(item.itemName || item.ITEM_NAME || ''),
+    entp_name:  String(item.entpName || item.ENTP_NAME || ''),
+    ingredient,
+    category:   'drug',
+    effect:     String(item.efcyQesitm      || ''),
+    dosage:     String(item.useMethodQesitm || ''),
+    caution:    String(item.atpnQesitm      || ''),
+    interaction:String(item.intrcQesitm     || ''),
+    _source:    'mfds',
+  };
+}
 
 // ══════════════════════════════════════════════════════════════
 //  인메모리 데이터 (Vercel 서버리스 호환 — 파일 시스템 불필요)
@@ -89,10 +133,26 @@ const interactions = [...INTERACTIONS];
 //  API 라우트
 // ══════════════════════════════════════════════════════════════
 
-// ── 검색 ────────────────────────────────────────────────────
-app.get('/api/search', (req, res) => {
+// ── 검색 (식약처 실데이터 우선 → 샘플 폴백) ──────────────────
+app.get('/api/search', async (req, res) => {
   const { q = '', category = 'all', limit = 10 } = req.query;
   if (!q.trim()) return res.json([]);
+
+  // 1) 식약처 실API 시도
+  if (MFDS_KEY) {
+    try {
+      const items = await callMFDS(DRUG_EP, { itemName: q, numOfRows: Number(limit) });
+      if (items.length > 0) {
+        let results = items.map(transformDrug);
+        if (category !== 'all') results = results.filter(d => d.category === category);
+        return res.json(results.slice(0, Number(limit)));
+      }
+    } catch (e) {
+      console.warn('[MFDS API 오류, 샘플 폴백]', e.message);
+    }
+  }
+
+  // 2) 샘플 데이터 폴백
   const kw = q.toLowerCase();
   let results = drugs.filter(d => {
     const nameMatch = d.item_name.toLowerCase().includes(kw);
