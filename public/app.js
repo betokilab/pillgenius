@@ -19,7 +19,18 @@ async function onSearch(input, idx) {
   if (!res || !res.ok) return;
   const items = await res.json();
 
-  if (!items.length) { ac.style.display = 'none'; return; }
+  if (!items.length) {
+    ac.innerHTML = `<div style="padding:16px 16px;text-align:center">
+      <div style="font-size:22px;margin-bottom:6px">🔍</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:4px">'${q}' 검색 결과가 없어요</div>
+      <div style="font-size:12px;color:var(--text-tertiary);line-height:1.6">
+        약 이름 또는 성분명으로 다시 검색해 보세요<br>
+        예: 타이레놀, 아세트아미노펜, 오메가3
+      </div>
+    </div>`;
+    ac.style.display = 'block';
+    return;
+  }
   ac.innerHTML = items.map(d =>
     `<div class="ac-item" onmousedown="selectDrug(${idx},'${d.item_seq}','${d.item_name.replace(/'/g,"\\'")}','${d.category}')">
       <span>${d.item_name}</span>
@@ -289,16 +300,24 @@ function guideTab(btn, id) {
 }
 
 // ── 페이지 이동 ──────────────────────────────────────────────
-function showPage(name, btn) {
+function showPage(name, btn, fromTab) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
+
+  // 상단 nav 업데이트
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  if (btn) btn.classList.add('active');
+  if (btn && !fromTab) btn.classList.add('active');
   else {
     const map = { home:0, cabinet:1, symptoms:2, guide:3 };
     const links = document.querySelectorAll('.nav-link');
-    if (map[name] !== undefined) links[map[name]].classList.add('active');
+    if (map[name] !== undefined) links[map[name]]?.classList.add('active');
   }
+
+  // 하단 탭바 업데이트
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  const tabEl = document.getElementById('tab-' + name);
+  if (tabEl) tabEl.classList.add('active');
+
   window.scrollTo(0, 0);
 }
 

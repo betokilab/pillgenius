@@ -29,20 +29,31 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ── 식약처 API 호출 헬퍼 ─────────────────────────────────────
 async function callMFDS(endpoint, params) {
   const url = new URL(endpoint);
-  url.searchParams.set('ServiceKey', MFDS_KEY);
+  url.searchParams.set('serviceKey', MFDS_KEY);
   url.searchParams.set('type', 'json');
   url.searchParams.set('numOfRows', params.numOfRows || 10);
   url.searchParams.set('pageNo', params.pageNo || 1);
   if (params.itemName) url.searchParams.set('itemName', params.itemName);
   if (params.itemSeq)  url.searchParams.set('itemSeq',  params.itemSeq);
 
-  const res  = await fetch(url.toString(), { timeout: 5000 });
-  const json = await res.json();
-  const body = json?.body;
-  if (!body) return [];
+  const res  = await fetch(url.toString(), { timeout: 8000 });
+  const text = await res.text();
+
+  // JSON 파싱 시도
+  let json;
+  try { json = JSON.parse(text); } catch(e) {
+    console.warn('[MFDS] JSON 파싱 실패:', text.slice(0, 200));
+    return [];
+  }
+
+  // 응답 구조: { body: { items: [...] } } 또는 { response: { body: { items: [...] } } }
+  const body = json?.body || json?.response?.body;
+  if (!body) { console.warn('[MFDS] body 없음:', JSON.stringify(json).slice(0, 200)); return []; }
   const items = body.items;
   if (!items) return [];
-  return Array.isArray(items) ? items : [items];
+  // items가 { item: [...] } 형태일 수도 있음
+  const arr = items.item || items;
+  return Array.isArray(arr) ? arr : [arr];
 }
 
 // e약은요 응답 → 내부 포맷 변환
