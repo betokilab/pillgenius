@@ -13,6 +13,17 @@ const DUR_EP      = `${MFDS_BASE}/DURPrdlstInfoService03/getDURPrdlstInfoList03`
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// ── sitemap / robots (static보다 먼저 등록) ───────────────────
+app.get('/sitemap.xml', (req, res) => {
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://www.pillgenius.co.kr/</loc><lastmod>2026-05-29</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url></urlset>`);
+});
+app.get('/robots.txt', (req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+  res.send('User-agent: *\nAllow: /\n\nSitemap: https://www.pillgenius.co.kr/sitemap.xml');
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── 식약처 API 호출 헬퍼 ─────────────────────────────────────
