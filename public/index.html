@@ -995,32 +995,95 @@ footer {
   <div class="page-header">
     <div class="page-header-inner">
       <h1>📚 복약 가이드</h1>
-      <p>약 먹을 때 꼭 알아야 할 생활 꿀팁</p>
+      <p>약 먹을 때 꼭 알아야 할 필수 정보</p>
     </div>
   </div>
   <div class="guide-wrap" style="max-width:740px;margin:0 auto">
-    <div class="tab-bar">
+    <div class="tab-bar" style="overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch">
       <button class="tab-btn active" onclick="guideTab(this,'g-alc')">🍺 술</button>
       <button class="tab-btn" onclick="guideTab(this,'g-cof')">☕ 커피</button>
       <button class="tab-btn" onclick="guideTab(this,'g-milk')">🥛 우유</button>
       <button class="tab-btn" onclick="guideTab(this,'g-time')">⏰ 복용 시간</button>
+      <button class="tab-btn" onclick="guideTab(this,'g-food')">🥦 음식</button>
+      <button class="tab-btn" onclick="guideTab(this,'g-store')">📦 보관</button>
+      <button class="tab-btn" onclick="guideTab(this,'g-preg')">🤰 임산부</button>
+      <button class="tab-btn" onclick="guideTab(this,'g-elder')">👴 고령자</button>
     </div>
+
+    <!-- 술 -->
     <div id="g-alc" class="guide-panel active">
-      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">✗</div><div><strong>타이레놀(아세트아미노펜) + 알코올</strong><p>간독성 위험 급증. 음주 중이거나 만성 음주자는 복용 금지.</p></div></div>
-      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">✗</div><div><strong>항생제(메트로니다졸) + 알코올</strong><p>심한 구역·구토·두근거림. 복용 후 최소 48시간 금주.</p></div></div>
-      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠</div><div><strong>수면제·진정제 + 알코올</strong><p>중추신경 억제 효과 상승, 호흡 억제 위험.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">🚫</div><div><strong>타이레놀(아세트아미노펜) + 알코올</strong><p>간독성 위험이 급격히 증가해요. 음주 중이거나 만성 음주자는 절대 복용 금지. 하루 음주 3잔 이상이라면 반드시 의사 상담 후 사용하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">🚫</div><div><strong>항생제(메트로니다졸·세파계열) + 알코올</strong><p>디설피람 유사 반응 발생 — 심한 구역·구토·두근거림·저혈압이 나타날 수 있어요. 복용 후 최소 48시간 금주가 필수입니다.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">🚫</div><div><strong>수면제·항불안제(졸피뎀·알프라졸람) + 알코올</strong><p>중추신경 억제 효과가 겹쳐 호흡 억제·의식 저하·낙상 위험이 생겨요. 병용 절대 금기입니다.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>혈압약(암로디핀 등) + 알코올</strong><p>혈압이 과도하게 떨어져 어지러움·실신 위험이 있어요. 음주량을 최소화하고 자리에서 천천히 일어나세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>당뇨약(메트포르민·설폰요소계) + 알코올</strong><p>저혈당 위험이 높아져요. 공복 음주는 특히 위험하며, 저혈당 증상(식은땀·손 떨림·어지러움)이 나타나면 즉시 당분을 섭취하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>항응고제(와파린) + 알코올</strong><p>소량 음주는 와파린 효과를 높이고, 과음은 오히려 낮춰요. INR이 불안정해지므로 음주량을 일정하게 유지하고 정기 모니터링 필수.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#E8FAF0">✅</div><div><strong>술과 약 — 안전한 간격은?</strong><p>대부분의 약은 최소 <strong>2~4시간</strong> 전후 금주를 권장해요. 간에서 대사되는 약(타이레놀·항생제·수면제)은 <strong>24~48시간</strong> 완전 금주가 원칙입니다.</p></div></div>
     </div>
+
+    <!-- 커피 -->
     <div id="g-cof" class="guide-panel">
-      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠</div><div><strong>철분제 + 카페인</strong><p>철분 흡수 방해. 철분제 복용 2시간 후에 커피 섭취.</p></div></div>
-      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠</div><div><strong>갑상선약(레보티록신) + 커피</strong><p>흡수율 저하. 공복 복용 후 30~60분 후 커피 섭취.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>철분제 + 커피·홍차</strong><p>카페인과 타닌이 철분 흡수를 최대 60% 방해해요. 철분제 복용 전후 <strong>2시간</strong>은 커피·홍차·녹차를 피하고 물과 함께 복용하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>갑상선약(레보티록신) + 커피</strong><p>커피가 약 흡수율을 최대 30% 낮춰요. 공복에 약 복용 후 <strong>30~60분</strong> 지나서 커피를 마시거나, 아예 약 복용 1시간 전에 커피를 마시세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>골다공증약(비스포스포네이트) + 커피</strong><p>흡수율이 크게 떨어져요. 반드시 물 200mL 이상과 함께 복용하고, <strong>30분간</strong> 커피·음식·다른 약 모두 금지.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>카페인 + 에페드린·기관지 확장제</strong><p>심장 두근거림·혈압 상승·불안감이 생길 수 있어요. 감기약에 든 에페드린 성분 확인 후 커피 섭취량을 조절하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#E8FAF0">✅</div><div><strong>커피와 함께 먹어도 되는 약</strong><p>이부프로펜·아스피린 등 대부분의 진통제, 항히스타민제, 혈압약(암로디핀 계열)은 커피와 병용해도 큰 문제가 없어요. 단, 공복보다는 식후 복용을 권장합니다.</p></div></div>
     </div>
+
+    <!-- 우유 -->
     <div id="g-milk" class="guide-panel">
-      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">✗</div><div><strong>항생제(퀴놀론·테트라사이클린) + 우유</strong><p>칼슘이 항생제 흡수 50% 이상 방해. 2시간 간격 필수.</p></div></div>
-      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠</div><div><strong>철분제 + 우유</strong><p>칼슘이 철분 흡수 방해. 공복 또는 물과 함께 복용.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">🚫</div><div><strong>항생제(테트라사이클린·퀴놀론계) + 우유</strong><p>우유의 칼슘이 항생제와 결합해 흡수를 50% 이상 방해해요. 독시사이클린·레보플록사신 등은 우유 복용 <strong>2시간 전후</strong>로 완전히 피하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>철분제 + 우유</strong><p>칼슘이 철분 흡수를 방해해요. 가능하면 공복에 물과 함께 복용하고, 우유·유제품은 <strong>1~2시간</strong> 후 섭취하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>갑상선약(레보티록신) + 우유</strong><p>칼슘이 약 흡수를 방해해요. 우유는 복용 <strong>4시간 후</strong>에 마시는 게 안전합니다.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#E8FAF0">✅</div><div><strong>우유와 함께 먹으면 좋은 약</strong><p>이부프로펜·아스피린 등 위장 자극이 있는 NSAIDs 계열 진통제는 오히려 우유나 음식과 함께 복용하면 위장 부작용을 줄일 수 있어요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#E8FAF0">✅</div><div><strong>칼슘제 + 비타민D</strong><p>칼슘 흡수를 위해 비타민D와 함께 복용하면 효과적이에요. 식사와 함께 또는 식후 바로 복용하면 흡수율이 더 높아집니다.</p></div></div>
     </div>
+
+    <!-- 복용 시간 -->
     <div id="g-time" class="guide-panel">
-      <div class="i-row"><div class="i-icon" style="background:#EBF3FF">❓</div><div><strong>식전·식후가 헷갈릴 때</strong><p>일반적으로 식후 30분 복용이 위 자극 감소. 당뇨약·갑상선약은 식전/공복 복용 필수.</p></div></div>
-      <div class="i-row"><div class="i-icon" style="background:#EBF3FF">❓</div><div><strong>약 먹는 것을 잊었을 때</strong><p>다음 복용 시간이 반 이상 남았으면 즉시 복용. 그 이상 지났으면 건너뛰고 다음 시간에 정상 복용. 절대 두 배 복용 금지.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#EBF3FF">📋</div><div><strong>공복 복용 필수 약</strong><p><strong>갑상선약(레보티록신)</strong> — 아침 기상 직후 물과 함께, 식사 30분 전<br><strong>골다공증약(비스포스포네이트)</strong> — 아침 공복, 복용 후 30분 서 있기<br><strong>프로바이오틱스(유산균)</strong> — 식전 30분 또는 취침 전 공복</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#EBF3FF">📋</div><div><strong>식사와 함께 복용 필수 약</strong><p><strong>당뇨약(메트포르민)</strong> — 식사 중 또는 식사 직후(위장 부작용 감소)<br><strong>지용성 비타민(A·D·E·K)</strong> — 지방 함유 식사와 함께 복용 시 흡수율↑<br><strong>오메가3·코엔자임Q10</strong> — 지방식과 함께 복용</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#EBF3FF">📋</div><div><strong>식후 30분 복용 권장 약</strong><p><strong>NSAIDs 진통제(이부프로펜·아스피린·나프록센)</strong> — 빈속 복용 시 위장 점막 손상<br><strong>항생제 대부분</strong> — 식후 복용이 위장 부작용 줄임<br><strong>철분제</strong> — 위장 자극이 심하면 식후 복용 가능(흡수율 약간 감소)</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#EBF3FF">📋</div><div><strong>취침 전 복용 약</strong><p><strong>수면제(졸피뎀)</strong> — 취침 직전, 복용 즉시 누울 준비 완료<br><strong>스타틴(콜레스테롤약)</strong> — 콜레스테롤 합성이 야간에 활발 → 취침 전 복용 효과적<br><strong>일부 혈압약</strong> — 야간 혈압 조절 목적으로 취침 전 처방하기도 함</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>약을 잊었을 때 대처법</strong><p>다음 복용 시간이 절반 이상 남았으면 즉시 복용하세요. 절반 이상 지났다면 건너뛰고 다음 시간에 정상 복용합니다. <strong>절대 2배로 복용하지 마세요.</strong> 와파린·인슐린처럼 복용 간격이 중요한 약은 담당 의사 또는 약사에게 문의하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>약 복용 간격이 중요한 이유</strong><p>일정한 간격으로 복용해야 혈중 약물 농도가 일정하게 유지돼요. 항생제는 특히 중요 — 불규칙 복용 시 내성균이 생길 수 있어요. 처방받은 기간은 반드시 완료하세요.</p></div></div>
+    </div>
+
+    <!-- 음식 -->
+    <div id="g-food" class="guide-panel">
+      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">🚫</div><div><strong>자몽·자몽주스 + 혈압약·고지혈증약</strong><p>자몽의 푸라노쿠마린 성분이 간 효소(CYP3A4)를 억제해 약물 농도가 최대 수 배 상승해요. 암로디핀·심바스타틴·로수바스타틴 복용 중이라면 자몽은 완전히 피하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">🚫</div><div><strong>와파린 + 비타민K 풍부 음식</strong><p>케일·시금치·브로콜리·낫토 등 비타민K가 많은 음식은 와파린 효과를 약화시켜요. 완전히 피할 필요는 없지만, <strong>매일 일정량</strong> 유지가 중요해요. 갑자기 늘리거나 줄이지 마세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>고지혈증약(스타틴) + 고지방식</strong><p>스타틴은 식사와 무관하게 복용 가능하지만, 지속적인 고지방·고콜레스테롤 식단은 약 효과를 상쇄해요. 약 복용과 함께 식이 조절이 병행돼야 해요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>MAO 억제제 + 티라민 함유 식품</strong><p>숙성 치즈·발효식품·훈제육·적포도주 등 티라민이 많은 음식은 혈압을 위험할 정도로 높일 수 있어요. 항우울제(MAO 억제제) 복용 중이라면 해당 식품을 피하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>철분제 + 녹차·홍차·탄닌 음식</strong><p>탄닌이 철분과 결합해 불용성 복합체를 형성, 흡수를 크게 방해해요. 철분제는 물 또는 비타민C 음료(오렌지주스 등)와 함께 복용하면 흡수율이 오히려 올라가요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#E8FAF0">✅</div><div><strong>약 흡수를 돕는 음식 조합</strong><p>• 철분제 + 비타민C(오렌지주스) → 흡수율 2~3배 상승<br>• 지용성 비타민(A·D·E·K) + 건강한 지방(아보카도·견과류) → 흡수율↑<br>• 칼슘제 + 비타민D → 칼슘 흡수 촉진</p></div></div>
+    </div>
+
+    <!-- 보관 -->
+    <div id="g-store" class="guide-panel">
+      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">🚫</div><div><strong>욕실·주방에 약 보관 금지</strong><p>습기와 열이 약을 빠르게 변질시켜요. 특히 욕실 수납장은 최악의 보관 장소예요. 서늘하고 건조한 곳(침실 서랍 등)에 보관하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">🚫</div><div><strong>냉장 보관이 필요한 약 — 얼리면 안 돼요</strong><p>인슐린·안약·일부 항생제 시럽은 냉장(2~8°C) 보관이 원칙이에요. 냉동실에 얼리면 단백질 구조가 파괴되어 효능이 사라집니다.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>직사광선 차단 필수 약</strong><p>니트로글리세린·일부 항생제·비타민류는 빛에 분해돼요. 원래 갈색 병이나 불투명 용기에 넣어 빛을 차단하고, 약이 변색되면 즉시 폐기하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>유효기간 확인 습관</strong><p>개봉 후 유효기간이 달라지는 약들이 있어요.<br>• 안약 — 개봉 후 <strong>4주</strong> 이내 사용<br>• 안약(일회용) — 개봉 즉시 사용 후 폐기<br>• 시럽제 — 개봉 후 <strong>1~3개월</strong> (냉장 보관)<br>• 연고류 — 개봉 후 <strong>6개월</strong></p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>약 올바르게 버리는 법</strong><p>변기에 버리면 수질 오염, 그냥 쓰레기통에 버리면 토양 오염이 돼요. 가까운 <strong>약국이나 보건소</strong>에 가져가면 안전하게 폐기해줘요. 전국 폐의약품 수거함은 건강보험심사평가원 사이트에서 확인 가능합니다.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#E8FAF0">✅</div><div><strong>어린이 안전 보관</strong><p>모든 약은 어린이 손이 닿지 않는 잠금 가능한 곳에 보관하세요. 어린이용 안전 캡(CRC)이 있어도 방심 금물. 비타민제·철분제도 대량 섭취 시 어린이에게 위험합니다.</p></div></div>
+    </div>
+
+    <!-- 임산부 -->
+    <div id="g-preg" class="guide-panel">
+      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">🚫</div><div><strong>임신 중 절대 금기 약</strong><p>• <strong>이부프로펜·아스피린 고용량</strong>(NSAIDs) — 태아 심혈관 기형, 양수 감소 위험<br>• <strong>와파린</strong> — 태반 통과, 태아 출혈·기형<br>• <strong>테트라사이클린 항생제</strong> — 태아 뼈·치아 발달 저해<br>• <strong>비타민A 고용량</strong>(레티놀) — 태아 기형 유발</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>임신 중 주의가 필요한 약</strong><p>• <strong>타이레놀(아세트아미노펜)</strong> — 임신 중 해열진통제로 상대적으로 안전하지만, 최소 용량·최단 기간 사용 권장<br>• <strong>항히스타민제</strong> — 임신 초기 주의, 의사 상담 후 사용<br>• <strong>제산제</strong> — 마그네슘 계열은 대체로 안전, 탄산수소나트륨(베이킹소다) 성분은 피할 것</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#E8FAF0">✅</div><div><strong>임신 중 꼭 챙겨야 할 영양소</strong><p>• <strong>엽산(400~600mcg)</strong> — 임신 전부터 임신 12주까지 필수, 신경관 결손 예방<br>• <strong>철분(27mg)</strong> — 임신 중기부터, 빈혈 예방<br>• <strong>비타민D(600~800IU)</strong> — 태아 뼈 발달<br>• <strong>오메가3(DHA)</strong> — 태아 뇌·눈 발달</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#E8FAF0">✅</div><div><strong>수유 중 약 복용 원칙</strong><p>대부분의 약은 모유로 소량 이행돼요. 타이레놀·이부프로펜은 수유 중 비교적 안전하지만, 항생제·항우울제·갑상선약 등은 반드시 의사·약사와 상담하세요. 복용 후 1~2시간 뒤 수유 농도가 최고조에 달하니 복용 직후 수유는 피하세요.</p></div></div>
+    </div>
+
+    <!-- 고령자 -->
+    <div id="g-elder" class="guide-panel">
+      <div class="i-row"><div class="i-icon" style="background:#FEF0F1">🚫</div><div><strong>고령자 주의 약 — 비어 기준(Beers Criteria)</strong><p>미국노인학회가 지정한 65세 이상 노인 고위험 약물이에요.<br>• <strong>졸피뎀·벤조디아제핀</strong> — 낙상·골절·인지장애 위험<br>• <strong>항히스타민제(디펜히드라민)</strong> — 인지장애, 섬망 유발<br>• <strong>NSAIDs 장기복용</strong> — 위장관 출혈, 신장 기능 저하</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>고령자 다약제 복용 주의</strong><p>65세 이상에서 5가지 이상 약 복용은 '폴리파마시(다약제)'로 부작용 위험이 크게 높아져요. 정기적으로 의사·약사에게 복용 중인 약 전체를 검토받는 <strong>처방 재검토</strong>를 받으세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>신장·간 기능 저하 시 주의</strong><p>노화로 신장·간 기능이 떨어지면 약 대사·배설이 느려져 혈중 농도가 쌓여요. 메트포르민·NSAIDs는 신기능 저하 시 용량 조정 또는 중단이 필요해요. 정기적인 혈액검사로 신기능을 확인하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#FFF4E6">⚠️</div><div><strong>삼킴 장애가 있는 경우</strong><p>알약을 쪼개거나 가루로 만들면 안 되는 약이 있어요(서방형·장용정 등). 삼키기 어려울 때는 임의로 분쇄하지 말고, 약사에게 액상형·패치형 대체 약을 문의하세요.</p></div></div>
+      <div class="i-row"><div class="i-icon" style="background:#E8FAF0">✅</div><div><strong>고령자 복약 관리 팁</strong><p>• 약 이름·용량·복용 시간을 적은 <strong>복약 리스트</strong>를 만들어 항상 지참<br>• 응급 시 의료진에게 보여줄 수 있도록 보호자와 공유<br>• 약천재 <strong>내 약통</strong>에 모든 약을 등록해 상호작용을 정기 체크</p></div></div>
     </div>
   </div>
 </div>
