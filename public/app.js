@@ -320,11 +320,32 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ── 복약 알림 ─────────────────────────────────────────────
+// ── 복약 알림 (Service Worker 기반) ──────────────────────
 let alarms = JSON.parse(localStorage.getItem('pill_alarms') || '[]');
-let alarmTimers = {};
+let swReg = null; // Service Worker registration
 
-function saveAlarms() { localStorage.setItem('pill_alarms', JSON.stringify(alarms)); }
+// SW 등록
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js')
+    .then(reg => {
+      swReg = reg;
+      sendAlarmsToSW();
+    })
+    .catch(err => console.warn('SW 등록 실패:', err));
+}
+
+function saveAlarms() {
+  localStorage.setItem('pill_alarms', JSON.stringify(alarms));
+  sendAlarmsToSW();
+}
+
+// SW에 알람 목록 전달 (SW가 스케줄링 담당)
+async function sendAlarmsToSW() {
+  if (!swReg) return;
+  const sw = swReg.active || swReg.installing || swReg.waiting;
+  if (!sw) return;
+  sw.postMessage({ type: 'SCHEDULE_ALARMS', alarms });
+}
 
 function renderAlarms() {
   const list = document.getElementById('alarmList');
@@ -333,11 +354,26 @@ function renderAlarms() {
     list.innerHTML = '<div style="font-size:13px;color:var(--text-tertiary);text-align:center;padding:8px 0">설정된 알림이 없어요</div>';
     return;
   }
+  // 다음 알림까지 남은 시간 계산
+  function getTimeLeft(timeStr) {
+    const [h, m] = timeStr.split(':').map(Number);
+    const now = new Date();
+    const next = new Date();
+    next.setHours(h, m, 0, 0);
+    if (next <= now) next.setDate(next.getDate() + 1);
+    const diff = Math.round((next - now) / 60000);
+    if (diff < 60) return `${diff}분 후`;
+    const hh = Math.floor(diff / 60), mm = diff % 60;
+    return mm > 0 ? `${hh}시간 ${mm}분 후` : `${hh}시간 후`;
+  }
   list.innerHTML = alarms.map((a, i) => `
     <div class="alarm-item">
       <div class="alarm-item__left">
-        <span class="alarm-item__time">${a.time}</span>
-        <span class="alarm-item__label">${a.label || '복약 시간'}</span>
+        <div>
+          <span class="alarm-item__time">${a.time}</span>
+          <span class="alarm-item__label">${a.label || '복약 시간'}</span>
+        </div>
+        ${a.on ? `<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">⏱ ${getTimeLeft(a.time)}</div>` : '<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">꺼짐</div>'}
       </div>
       <div style="display:flex;align-items:center;gap:4px">
         <label class="alarm-item__toggle">
@@ -357,7 +393,6 @@ function addAlarm() {
   alarms.push({ time, label, on: true, id: Date.now() });
   saveAlarms();
   renderAlarms();
-  scheduleAllAlarms();
   document.getElementById('alarmLabelInput').value = '';
   toast(`⏰ ${time} 알림이 설정됐어요!`);
 }
@@ -366,13 +401,12 @@ function deleteAlarm(i) {
   alarms.splice(i, 1);
   saveAlarms();
   renderAlarms();
-  scheduleAllAlarms();
 }
 
 function toggleAlarm(i, on) {
   alarms[i].on = on;
   saveAlarms();
-  scheduleAllAlarms();
+  renderAlarms();
 }
 
 async function requestAlarmPermission() {
@@ -380,13 +414,14 @@ async function requestAlarmPermission() {
     alert('이 브라우저는 알림을 지원하지 않아요.');
     return;
   }
+  // SW 권한 요청
   const result = await Notification.requestPermission();
   updatePermBadge();
   if (result === 'granted') {
-    toast('🔔 알림 권한이 허용됐어요!');
-    scheduleAllAlarms();
-  } else {
-    toast('알림 권한이 거부됐어요. 브라우저 설정에서 허용해 주세요.');
+    toast('🔔 알림 권한이 허용됐어요! 탭을 닫아도 알림이 와요.');
+    sendAlarmsToSW();
+  } else if (result === 'denied') {
+    toast('알림 권한이 거부됐어요. 브라우저 주소창 왼쪽 자물쇠 아이콘에서 허용해 주세요.');
   }
 }
 
@@ -395,42 +430,20 @@ function updatePermBadge() {
   const btn = document.getElementById('alarmPermBtn');
   if (!badge || !btn) return;
   const perm = Notification?.permission;
+  const swSupport = 'serviceWorker' in navigator;
   if (perm === 'granted') {
-    badge.textContent = '✅ 알림 허용됨';
+    badge.textContent = swSupport ? '✅ SW 알림 활성' : '✅ 알림 허용됨';
     badge.style.background = '#E8FAF0'; badge.style.color = '#00B761';
-    btn.textContent = '✅ 알림 허용됨';
+    btn.textContent = '✅ 알림 활성화됨';
     btn.classList.add('granted');
   } else if (perm === 'denied') {
     badge.textContent = '🚫 알림 차단됨';
     badge.style.background = '#FFF0F0'; badge.style.color = '#F04452';
+    btn.textContent = '🚫 브라우저 설정에서 허용 필요';
+    btn.classList.add('granted');
   } else {
-    badge.textContent = '알림 꺼짐';
+    badge.textContent = swSupport ? 'SW 대기 중' : '알림 꺼짐';
   }
-}
-
-function scheduleAllAlarms() {
-  // 기존 타이머 모두 취소
-  Object.values(alarmTimers).forEach(clearTimeout);
-  alarmTimers = {};
-  if (Notification?.permission !== 'granted') return;
-
-  alarms.filter(a => a.on).forEach(a => {
-    const [h, m] = a.time.split(':').map(Number);
-    const now = new Date();
-    const next = new Date();
-    next.setHours(h, m, 0, 0);
-    if (next <= now) next.setDate(next.getDate() + 1); // 내일로
-    const delay = next - now;
-    alarmTimers[a.id] = setTimeout(() => {
-      const drugNames = cabDrugs.map(d => d.name).join(', ') || '약';
-      new Notification('💊 약천재 복약 알림', {
-        body: `${a.label || '복약 시간'}이에요!\n복용: ${drugNames}`,
-        icon: '/favicon.ico',
-      });
-      // 다음날 동일 시각 재스케줄
-      scheduleAllAlarms();
-    }, delay);
-  });
 }
 
 // ── AI 챗봇 ──────────────────────────────────────────────
@@ -489,4 +502,5 @@ renderCabList();
 loadStats();
 renderAlarms();
 updatePermBadge();
-scheduleAllAlarms();
+// 1분마다 "남은 시간" 표시 갱신
+setInterval(renderAlarms, 60000);
