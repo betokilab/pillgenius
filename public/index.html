@@ -521,6 +521,94 @@ nav {
 .drug-rm { color: var(--border); font-size: 16px; cursor: pointer; padding: 4px; transition: color .15s; }
 .drug-rm:hover { color: var(--danger); }
 .cab-form { padding: 14px 20px; }
+/* ── 복약 알림 ─────────────────────────────── */
+.alarm-time-input {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg);
+  outline: none;
+  width: 110px;
+  transition: border-color .15s;
+}
+.alarm-time-input:focus { border-color: var(--blue); background: #fff; }
+.alarm-label-input {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg);
+  outline: none;
+  transition: border-color .15s;
+}
+.alarm-label-input:focus { border-color: var(--blue); background: #fff; }
+.alarm-add-btn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.alarm-add-btn:hover { background: var(--blue-dark); }
+.alarm-notify-btn {
+  width: 100%;
+  background: var(--blue-light);
+  color: var(--blue);
+  border: none;
+  border-radius: 10px;
+  padding: 11px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+.alarm-notify-btn:hover { background: #d6e8ff; }
+.alarm-notify-btn.granted { background: #E8FAF0; color: var(--safe); pointer-events: none; }
+.alarm-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.alarm-item__left { display: flex; align-items: center; gap: 10px; }
+.alarm-item__time { font-size: 18px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.alarm-item__label { font-size: 13px; color: var(--text-secondary); }
+.alarm-item__toggle {
+  position: relative; width: 40px; height: 22px; cursor: pointer;
+}
+.alarm-item__toggle input { opacity: 0; width: 0; height: 0; }
+.alarm-item__slider {
+  position: absolute; inset: 0;
+  background: var(--border);
+  border-radius: 99px;
+  transition: background .2s;
+}
+.alarm-item__slider::before {
+  content: ''; position: absolute;
+  width: 16px; height: 16px;
+  left: 3px; top: 3px;
+  background: #fff; border-radius: 50%;
+  transition: transform .2s;
+}
+.alarm-item__toggle input:checked + .alarm-item__slider { background: var(--blue); }
+.alarm-item__toggle input:checked + .alarm-item__slider::before { transform: translateX(18px); }
+.alarm-item__del { color: var(--border); font-size: 15px; cursor: pointer; padding: 4px; transition: color .15s; margin-left: 6px; }
+.alarm-item__del:hover { color: var(--danger); }
 .cab-form input {
   width: 100%;
   padding: 10px 14px;
@@ -854,6 +942,27 @@ footer {
           <input type="text" id="cabInput" placeholder="약/영양제 이름 검색..." oninput="cabSearch(this)" autocomplete="off">
           <div id="cabAc" style="display:none"></div>
           <button onclick="checkCabinet()">🧠 전체 안전성 분석</button>
+        </div>
+      </div>
+
+      <!-- 복약 알림 카드 -->
+      <div class="cab-card" style="margin-top:16px">
+        <div class="cab-header" style="display:flex;align-items:center;justify-content:space-between">
+          <span>⏰ 복약 알림</span>
+          <span id="alarmPermBadge" style="font-size:11px;padding:3px 8px;border-radius:99px;background:#F2F4F6;color:var(--text-tertiary);font-weight:500"></span>
+        </div>
+        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">
+            복약 시간을 설정하면 브라우저 알림으로 알려드려요.<br>
+            <span style="color:var(--text-tertiary);font-size:12px">※ 브라우저가 열려 있을 때만 작동해요</span>
+          </div>
+          <div id="alarmList" style="display:flex;flex-direction:column;gap:8px"></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="time" id="alarmTimeInput" class="alarm-time-input" value="08:00">
+            <input type="text" id="alarmLabelInput" class="alarm-label-input" placeholder="메모 (예: 아침 식후)">
+            <button class="alarm-add-btn" onclick="addAlarm()">추가</button>
+          </div>
+          <button class="alarm-notify-btn" id="alarmPermBtn" onclick="requestAlarmPermission()">🔔 알림 권한 허용</button>
         </div>
       </div>
     </div>

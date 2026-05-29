@@ -320,6 +320,119 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// ── 복약 알림 ─────────────────────────────────────────────
+let alarms = JSON.parse(localStorage.getItem('pill_alarms') || '[]');
+let alarmTimers = {};
+
+function saveAlarms() { localStorage.setItem('pill_alarms', JSON.stringify(alarms)); }
+
+function renderAlarms() {
+  const list = document.getElementById('alarmList');
+  if (!list) return;
+  if (alarms.length === 0) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text-tertiary);text-align:center;padding:8px 0">설정된 알림이 없어요</div>';
+    return;
+  }
+  list.innerHTML = alarms.map((a, i) => `
+    <div class="alarm-item">
+      <div class="alarm-item__left">
+        <span class="alarm-item__time">${a.time}</span>
+        <span class="alarm-item__label">${a.label || '복약 시간'}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <label class="alarm-item__toggle">
+          <input type="checkbox" ${a.on ? 'checked' : ''} onchange="toggleAlarm(${i}, this.checked)">
+          <span class="alarm-item__slider"></span>
+        </label>
+        <span class="alarm-item__del" onclick="deleteAlarm(${i})">✕</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addAlarm() {
+  const time = document.getElementById('alarmTimeInput').value;
+  const label = document.getElementById('alarmLabelInput').value.trim();
+  if (!time) return;
+  alarms.push({ time, label, on: true, id: Date.now() });
+  saveAlarms();
+  renderAlarms();
+  scheduleAllAlarms();
+  document.getElementById('alarmLabelInput').value = '';
+  toast(`⏰ ${time} 알림이 설정됐어요!`);
+}
+
+function deleteAlarm(i) {
+  alarms.splice(i, 1);
+  saveAlarms();
+  renderAlarms();
+  scheduleAllAlarms();
+}
+
+function toggleAlarm(i, on) {
+  alarms[i].on = on;
+  saveAlarms();
+  scheduleAllAlarms();
+}
+
+async function requestAlarmPermission() {
+  if (!('Notification' in window)) {
+    alert('이 브라우저는 알림을 지원하지 않아요.');
+    return;
+  }
+  const result = await Notification.requestPermission();
+  updatePermBadge();
+  if (result === 'granted') {
+    toast('🔔 알림 권한이 허용됐어요!');
+    scheduleAllAlarms();
+  } else {
+    toast('알림 권한이 거부됐어요. 브라우저 설정에서 허용해 주세요.');
+  }
+}
+
+function updatePermBadge() {
+  const badge = document.getElementById('alarmPermBadge');
+  const btn = document.getElementById('alarmPermBtn');
+  if (!badge || !btn) return;
+  const perm = Notification?.permission;
+  if (perm === 'granted') {
+    badge.textContent = '✅ 알림 허용됨';
+    badge.style.background = '#E8FAF0'; badge.style.color = '#00B761';
+    btn.textContent = '✅ 알림 허용됨';
+    btn.classList.add('granted');
+  } else if (perm === 'denied') {
+    badge.textContent = '🚫 알림 차단됨';
+    badge.style.background = '#FFF0F0'; badge.style.color = '#F04452';
+  } else {
+    badge.textContent = '알림 꺼짐';
+  }
+}
+
+function scheduleAllAlarms() {
+  // 기존 타이머 모두 취소
+  Object.values(alarmTimers).forEach(clearTimeout);
+  alarmTimers = {};
+  if (Notification?.permission !== 'granted') return;
+
+  alarms.filter(a => a.on).forEach(a => {
+    const [h, m] = a.time.split(':').map(Number);
+    const now = new Date();
+    const next = new Date();
+    next.setHours(h, m, 0, 0);
+    if (next <= now) next.setDate(next.getDate() + 1); // 내일로
+    const delay = next - now;
+    alarmTimers[a.id] = setTimeout(() => {
+      const drugNames = cabDrugs.map(d => d.name).join(', ') || '약';
+      new Notification('💊 약천재 복약 알림', {
+        body: `${a.label || '복약 시간'}이에요!\n복용: ${drugNames}`,
+        icon: '/favicon.ico',
+      });
+      // 다음날 동일 시각 재스케줄
+      scheduleAllAlarms();
+    }, delay);
+  });
+}
+
 // ── AI 챗봇 ──────────────────────────────────────────────
 function openChatBot() {
   document.getElementById('chatModal').classList.add('open');
@@ -374,3 +487,6 @@ async function sendChat() {
 renderSymptoms();
 renderCabList();
 loadStats();
+renderAlarms();
+updatePermBadge();
+scheduleAllAlarms();
