@@ -133,6 +133,22 @@ const interactions = [...INTERACTIONS];
 //  API 라우트
 // ══════════════════════════════════════════════════════════════
 
+// ── 디버그 엔드포인트 ─────────────────────────────────────────
+app.get('/api/debug', async (req, res) => {
+  const keySet = !!MFDS_KEY;
+  const keyPreview = MFDS_KEY ? MFDS_KEY.slice(0, 8) + '...' : '(없음)';
+  let apiTest = null;
+  if (MFDS_KEY) {
+    try {
+      const items = await callMFDS(DRUG_EP, { itemName: '타이레놀', numOfRows: 3 });
+      apiTest = { success: true, count: items.length, sample: items[0]?.itemName || items[0]?.ITEM_NAME || null };
+    } catch (e) {
+      apiTest = { success: false, error: e.message };
+    }
+  }
+  res.json({ keySet, keyPreview, apiTest });
+});
+
 // ── 검색 (식약처 실데이터 우선 → 샘플 폴백) ──────────────────
 app.get('/api/search', async (req, res) => {
   const { q = '', category = 'all', limit = 10 } = req.query;
