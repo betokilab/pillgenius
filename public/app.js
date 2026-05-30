@@ -124,14 +124,20 @@ function selectDrug(idx, seq, name, category) {
 
 function hideAc(idx) { setTimeout(() => { const el = document.getElementById('ac-' + idx); if (el) el.style.display = 'none'; }, 200); }
 function toggleClear(idx, show) {
-  const slot = document.getElementById('drugSlots').querySelectorAll('.drug-slot')[idx];
-  if (slot) slot.querySelector('.slot-clear').classList.toggle('show', show);
+  const drugSlotsEl = document.getElementById('drugSlots');
+  if (!drugSlotsEl) return;
+  const slot = drugSlotsEl.querySelectorAll('.drug-slot')[idx];
+  if (slot) slot.querySelector('.slot-clear')?.classList.toggle('show', show);
 }
 function clearSlot(idx) {
   slots[idx] = null;
-  const slot = document.getElementById('drugSlots').querySelectorAll('.drug-slot')[idx];
-  slot.querySelector('input').value = '';
+  const drugSlotsEl = document.getElementById('drugSlots');
+  if (drugSlotsEl) {
+    const slot = drugSlotsEl.querySelectorAll('.drug-slot')[idx];
+    if (slot) slot.querySelector('input').value = '';
+  }
   toggleClear(idx, false);
+  renderDrugTags();
 }
 
 function setCategory(cat, btn) {
