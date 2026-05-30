@@ -126,41 +126,248 @@ nav {
 .page { display: none; }
 .page.active { display: block; }
 
-/* ── 히어로 섹션 ────────────────────────────────────── */
-.hero {
-  background: var(--white);
-  padding: 80px 24px 72px;
+/* ── Track A: 스마트 검색 ──────────────────────────── */
+.track-a {
+  background: #fff;
+  padding: 56px 24px 48px;
   text-align: center;
-  border-bottom: 1px solid var(--border);
 }
-.hero-eyebrow {
+.track-a__inner { max-width: 600px; margin: 0 auto; }
+.track-a__headline {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -1px;
+  color: #191F28;
+  margin-bottom: 32px;
+}
+.track-a__headline span { color: #3182F6; }
+
+/* 통합 검색창 */
+.unified-search { position: relative; margin-bottom: 16px; }
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+  padding: 6px 6px 6px 22px;
+  gap: 10px;
+  transition: box-shadow .2s;
+}
+.search-input-wrap:focus-within {
+  box-shadow: 0 6px 32px rgba(49,130,246,0.18), 0 1px 4px rgba(49,130,246,0.1);
+}
+.search-input-wrap svg { flex-shrink: 0; opacity: 0.4; }
+.search-input-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 16px;
+  color: #191F28;
+  background: transparent;
+  min-width: 0;
+}
+.search-input-wrap input::placeholder { color: #B0B8C1; }
+.search-go-btn {
+  background: #3182F6;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, transform .15s;
+  flex-shrink: 0;
+}
+.search-go-btn:hover { background: #1B6EE4; transform: scale(1.03); }
+
+/* 선택된 약 태그 영역 */
+.selected-drugs-wrap {
+  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+.selected-drugs-wrap.show { display: flex; }
+.drug-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--blue-light);
-  color: var(--blue);
-  font-size: 13px;
+  background: #EBF3FF;
+  color: #3182F6;
+  font-size: 14px;
   font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 20px;
-  margin-bottom: 24px;
+  padding: 7px 14px;
+  border-radius: 999px;
 }
-.hero h1 {
-  font-size: 44px;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -1px;
-  color: var(--text-primary);
-  margin-bottom: 16px;
+.drug-tag__remove {
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0.6;
+  background: none;
+  border: none;
+  color: #3182F6;
+  padding: 0;
+  line-height: 1;
 }
-.hero h1 .blue { color: var(--blue); }
-.hero-sub {
+.drug-tag__remove:hover { opacity: 1; }
+.add-second-btn {
+  background: none;
+  border: none;
+  color: #3182F6;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 7px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.add-second-btn:hover { opacity: 0.75; }
+
+/* 분석하기 버튼 */
+.analyze-big-btn {
+  display: none;
+  width: 100%;
+  padding: 16px;
+  background: #3182F6;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Pretendard', sans-serif;
   font-size: 17px;
-  color: var(--text-tertiary);
-  font-weight: 400;
-  margin-bottom: 48px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background .15s, transform .15s;
+}
+.analyze-big-btn.show { display: block; }
+.analyze-big-btn:hover { background: #1B6EE4; transform: translateY(-1px); }
+
+/* 자동완성 (새 스타일) */
+.unified-ac {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0; right: 0;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  z-index: 200;
+  overflow: hidden;
+}
+
+/* 인기 검색어 칩 */
+.trending-chips {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.trending-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8B95A1;
+}
+.chips-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px 4px;
+  max-width: 100%;
+}
+.chips-scroll::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  background: #F2F4F6;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333D4B;
+  cursor: pointer;
+  transition: background .15s, transform .15s;
+  white-space: nowrap;
+}
+.chip:hover { background: #EBF3FF; color: #3182F6; transform: translateY(-1px); }
+
+/* ── Track B: 큐레이션 ─────────────────────────────── */
+.track-b {
+  background: #F9FAFB;
+  padding: 48px 24px 52px;
+  text-align: center;
+  border-top: 1px solid #F2F4F6;
+}
+.track-b__inner { max-width: 480px; margin: 0 auto; }
+.speech-bubble {
+  display: inline-block;
+  background: #fff;
+  border: 1.5px solid #E5E8EB;
+  border-radius: 20px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333D4B;
+  margin-bottom: 20px;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 9px solid #fff;
+  filter: drop-shadow(0 2px 1px rgba(0,0,0,0.06));
+}
+.curation-cta {
+  display: block;
+  width: 100%;
+  padding: 20px 24px;
+  background: #3182F6;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: -0.3px;
+  transition: background .2s, transform .2s, box-shadow .2s;
+  box-shadow: 0 8px 24px rgba(49,130,246,0.35);
+  margin-top: 12px;
+}
+.curation-cta:hover {
+  background: #1B6EE4;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(49,130,246,0.45);
+}
+.trust-copy {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #8B95A1;
   line-height: 1.6;
 }
+
+/* ── 기존 호환 (결과/기능카드) ────────────────────── */
+.hero { display: none; }
+.hero-sub { display: none; }
+.hero-eyebrow { display: none; }
 
 /* ── 검색 카드 ──────────────────────────────────────── */
 .search-card {
@@ -862,14 +1069,15 @@ footer {
 
 /* ── 반응형 ─────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .hero h1 { font-size: 30px; }
-  .hero-sub { font-size: 15px; }
   .feature-grid { grid-template-columns: repeat(2,1fr); }
   .cab-grid { grid-template-columns: 1fr; }
   .nav-links { display: none; }
-  .hero { padding: 56px 20px 52px; }
-  .search-card { padding: 20px; }
   nav { padding: 0 16px; }
+  .track-a { padding: 40px 20px 36px; }
+  .track-a__headline { font-size: 28px; }
+  .search-input-wrap input { font-size: 15px; }
+  .curation-cta { font-size: 16px; padding: 18px 20px; }
+  .track-b { padding: 36px 20px 44px; }
 }
 @media (min-width: 641px) {
   .hamburger { display: none !important; }
@@ -941,67 +1149,55 @@ footer {
 <!-- ===== 홈 ===== -->
 <div class="page active" id="page-home">
 
-  <div class="hero">
-    <div class="hero-eyebrow">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" fill="#3182F6" fill-opacity="0.2"/><circle cx="7" cy="7" r="3" fill="#3182F6"/></svg>
-      식약처 DUR 기반 · 44,120개 의약품
-    </div>
-    <h1>약 먹기 전에,<br><span class="blue">한 번만 물어보세요</span></h1>
-    <p class="hero-sub">복잡한 약 조합, 천재가 3초 만에 안전 여부를 분석해 드립니다</p>
+  <!-- ── Track A: 스마트 검색 ── -->
+  <section class="track-a">
+    <div class="track-a__inner">
+      <h1 class="track-a__headline">내가 먹는 약과 영양제,<br><span>같이 먹어도 될까?</span></h1>
 
-    <!-- 검색 카드 -->
-    <div class="search-card">
-      <div class="search-type-row">
-        <button class="s-tab active" onclick="setCategory('all',this)">전체</button>
-        <button class="s-tab" onclick="setCategory('drug',this)">의약품</button>
-        <button class="s-tab" onclick="setCategory('supplement',this)">건강기능식품</button>
-      </div>
+      <!-- 통합 검색창 -->
+      <div class="unified-search" style="position:relative;margin-bottom:20px">
+        <!-- 선택된 약 태그 -->
+        <div class="selected-drugs-wrap" id="selectedDrugsWrap"></div>
 
-      <div class="drug-slots" id="drugSlots">
-        <div class="drug-slot" data-idx="0">
-          <input type="text" placeholder="첫 번째 약 이름 또는 성분명 (예: 타이레놀)"
-            oninput="onSearch(this,0)" onfocus="onSearch(this,0)" onblur="hideAc(0)" autocomplete="off">
-          <div class="slot-badge">
-            <span class="slot-tag">약 1</span>
-            <span class="slot-clear" onclick="clearSlot(0)">✕</span>
-          </div>
-          <div class="autocomplete" id="ac-0" style="display:none"></div>
+        <!-- 메인 입력창 -->
+        <div class="search-input-wrap" id="mainSearchWrap">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="#8B95A1" stroke-width="1.8"/><path d="M12 12L16 16" stroke="#8B95A1" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input type="text" id="mainInput" placeholder="약 이름이나 성분을 검색해 보세요"
+            oninput="onSearch(this,currentSlotIdx)" onfocus="onSearch(this,currentSlotIdx)" onblur="hideAc(currentSlotIdx)" autocomplete="off">
+          <button class="search-go-btn" onclick="checkInteraction()" id="searchGoBtn" style="display:none">분석하기</button>
         </div>
-        <div class="drug-slot" data-idx="1">
-          <input type="text" placeholder="두 번째 약 또는 영양제"
-            oninput="onSearch(this,1)" onfocus="onSearch(this,1)" onblur="hideAc(1)" autocomplete="off">
-          <div class="slot-badge">
-            <span class="slot-tag">약 2</span>
-            <span class="slot-clear" onclick="clearSlot(1)">✕</span>
-          </div>
-          <div class="autocomplete" id="ac-1" style="display:none"></div>
-        </div>
-      </div>
+        <div class="unified-ac" id="ac-0" style="display:none"></div>
+        <div class="unified-ac" id="ac-1" style="display:none"></div>
+        <div class="unified-ac" id="ac-2" style="display:none"></div>
 
-      <div class="search-actions">
-        <button class="add-slot-btn" onclick="addSlot()">+ 약 추가</button>
-        <button class="analyze-btn" onclick="checkInteraction()">
-          분석하기
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <!-- 분석하기 버튼 (2개 선택 후) -->
+        <button class="analyze-big-btn" id="analyzeBigBtn" onclick="checkInteraction()">
+          🔍 상호작용 분석하기
         </button>
       </div>
-    </div>
 
-    <!-- 하단 메타 정보 -->
-    <div class="sev-row">
-      <span class="sev-chip"><span class="sev-dot" style="background:#00B761"></span>안전</span>
-      <span class="sev-chip"><span class="sev-dot" style="background:#FF9500"></span>주의</span>
-      <span class="sev-chip"><span class="sev-dot" style="background:#F04452"></span>경고</span>
-      <span class="sev-chip"><span class="sev-dot" style="background:#8B0000"></span>위험</span>
+      <!-- 인기 검색어 칩 -->
+      <div class="trending-chips">
+        <span class="trending-label">🔥 요즘 많이 찾는 팩트체크</span>
+        <div class="chips-scroll">
+          <button class="chip" onclick="chipSearch('오메가3')">오메가3</button>
+          <button class="chip" onclick="chipSearch('타이레놀')">타이레놀</button>
+          <button class="chip" onclick="chipSearch('센트룸')">센트룸</button>
+          <button class="chip" onclick="chipSearch('아스피린')">아스피린</button>
+          <button class="chip" onclick="chipSearch('비타민D')">비타민D</button>
+          <button class="chip" onclick="chipSearch('이부프로펜')">이부프로펜</button>
+        </div>
+      </div>
+
+      <!-- 심각도 범례 -->
+      <div class="sev-row" style="margin-top:24px">
+        <span class="sev-chip"><span class="sev-dot" style="background:#00B761"></span>안전</span>
+        <span class="sev-chip"><span class="sev-dot" style="background:#FF9500"></span>주의</span>
+        <span class="sev-chip"><span class="sev-dot" style="background:#F04452"></span>경고</span>
+        <span class="sev-chip"><span class="sev-dot" style="background:#8B0000"></span>위험</span>
+      </div>
     </div>
-    <div class="hero-meta">
-      <span class="hero-meta-item"><strong id="stat-drugs">-</strong> 의약품</span>
-      <span class="hero-meta-item">·</span>
-      <span class="hero-meta-item"><strong id="stat-supp">-</strong> 건강기능식품</span>
-      <span class="hero-meta-item">·</span>
-      <span class="hero-meta-item"><strong id="stat-inter">-</strong> 상호작용 검증</span>
-    </div>
-  </div>
+  </section>
 
   <!-- 결과 -->
   <div class="result-section" id="resultSection" style="display:none">
@@ -1009,6 +1205,17 @@ footer {
     <div class="result-card" id="resultCard"></div>
     <div class="loading" id="checkLoading"><span class="spinner"></span>분석 중...</div>
   </div>
+
+  <!-- ── Track B: 맞춤 큐레이션 ── -->
+  <section class="track-b">
+    <div class="track-b__inner">
+      <div class="speech-bubble">💬 지금 먹는 영양제, 진짜 도움 될까?</div>
+      <button class="curation-cta" onclick="toast('곧 오픈합니다! 기대해 주세요 😊')">
+        1분 만에 내 맞춤 영양 조합 찾기
+      </button>
+      <p class="trust-copy">현재 44,120개의 식약처 데이터가 실시간으로 연동되어 있습니다.</p>
+    </div>
+  </section>
 
   <!-- 기능 카드 -->
   <div class="main-content">

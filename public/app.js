@@ -5,6 +5,65 @@ let slotCount = 2;
 let searchCategory = 'all';
 let cabDrugs = []; // { seq, name, category, color }
 const COLORS = ['#2563EB','#16A34A','#D97706','#7C3AED','#DC2626'];
+let currentSlotIdx = 0; // 현재 입력 중인 슬롯 인덱스
+
+// ── 새 UI: 약 태그 렌더링 ──────────────────────────────
+function renderDrugTags() {
+  const wrap = document.getElementById('selectedDrugsWrap');
+  const analyzeBigBtn = document.getElementById('analyzeBigBtn');
+  const mainInput = document.getElementById('mainInput');
+  if (!wrap) return;
+
+  const selectedSlots = slots.filter(Boolean);
+
+  // 태그 렌더
+  let html = selectedSlots.map((s, i) => {
+    const realIdx = slots.indexOf(s);
+    return `<span class="drug-tag">💊 ${s.name}<button class="drug-tag__remove" onclick="clearSlotNew(${realIdx})">✕</button></span>`;
+  }).join('');
+
+  // 2개 미만이면 "+ 두 번째 약 추가하기" 버튼 표시
+  if (selectedSlots.length > 0 && selectedSlots.length < 3) {
+    html += `<button class="add-second-btn" onclick="activateNewSlot()">+ ${selectedSlots.length === 1 ? '두 번째' : '세 번째'} 약 추가하기</button>`;
+  }
+
+  wrap.innerHTML = html;
+  wrap.classList.toggle('show', selectedSlots.length > 0);
+
+  // 분석 버튼: 2개 이상 선택 시
+  analyzeBigBtn.classList.toggle('show', selectedSlots.length >= 2);
+
+  // 입력창 placeholder 업데이트
+  if (selectedSlots.length === 0) {
+    mainInput.placeholder = '약 이름이나 성분을 검색해 보세요';
+    currentSlotIdx = 0;
+  } else if (selectedSlots.length === 1) {
+    mainInput.placeholder = '두 번째 약 이름을 검색해 보세요';
+  }
+}
+
+function clearSlotNew(idx) {
+  slots[idx] = null;
+  renderDrugTags();
+}
+
+function activateNewSlot() {
+  // 빈 슬롯 찾기
+  for (let i = 0; i < slots.length; i++) {
+    if (!slots[i]) { currentSlotIdx = i; break; }
+  }
+  document.getElementById('mainInput').value = '';
+  document.getElementById('mainInput').focus();
+}
+
+// 칩 검색
+function chipSearch(name) {
+  const input = document.getElementById('mainInput');
+  if (!input) return;
+  input.value = name;
+  onSearch(input, currentSlotIdx);
+  input.focus();
+}
 
 // ── 검색 ──────────────────────────────────────────────────
 async function onSearch(input, idx) {
@@ -43,10 +102,24 @@ async function onSearch(input, idx) {
 
 function selectDrug(idx, seq, name, category) {
   slots[idx] = { seq, name, category };
-  const slot = document.getElementById('drugSlots').querySelectorAll('.drug-slot')[idx];
-  slot.querySelector('input').value = name;
-  slot.querySelector('.slot-clear').classList.add('show');
+  // 기존 호환
+  const drugSlotsEl = document.getElementById('drugSlots');
+  if (drugSlotsEl) {
+    const slot = drugSlotsEl.querySelectorAll('.drug-slot')[idx];
+    if (slot) {
+      slot.querySelector('input').value = name;
+      slot.querySelector('.slot-clear').classList.add('show');
+    }
+  }
   document.getElementById('ac-' + idx).style.display = 'none';
+  // 새 UI: 입력창 초기화 + 태그 렌더
+  const mainInput = document.getElementById('mainInput');
+  if (mainInput) mainInput.value = '';
+  // 다음 빈 슬롯으로 포커스
+  for (let i = 0; i < slots.length; i++) {
+    if (!slots[i]) { currentSlotIdx = i; break; }
+  }
+  renderDrugTags();
 }
 
 function hideAc(idx) { setTimeout(() => { const el = document.getElementById('ac-' + idx); if (el) el.style.display = 'none'; }, 200); }
@@ -538,6 +611,6 @@ renderSymptoms();
 renderCabList();
 loadStats();
 renderAlarms();
+renderDrugTags();
 updatePermBadge();
-// 1분마다 "남은 시간" 표시 갱신
 setInterval(renderAlarms, 60000);
