@@ -860,21 +860,8 @@ footer {
 .drawer-item:hover { background: var(--bg); }
 .drawer-item__icon { font-size: 20px; }
 
-/* ── 모바일 하단 탭바 ─────────────────────────────── */
-.bottom-tab-bar {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  z-index: 800;
-  background: #fff;
-  border-top: 1px solid #E5E8EB;
-  padding: 0;
-  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
-  display: none; /* 기본 숨김 */
-}
-
 /* ── 반응형 ─────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .bottom-tab-bar { display: flex !important; }
   .hero h1 { font-size: 30px; }
   .hero-sub { font-size: 15px; }
   .feature-grid { grid-template-columns: repeat(2,1fr); }
@@ -882,37 +869,13 @@ footer {
   .nav-links { display: none; }
   .hero { padding: 56px 20px 52px; }
   .search-card { padding: 20px; }
-  body { padding-bottom: 72px; }
-  /* 모바일 nav: 로고 + 햄버거만 */
-  nav { justify-content: space-between; padding: 0 16px; }
+  nav { padding: 0 16px; }
   .nav-logo-en { display: none; }
   .nav-logo-divider { display: none; }
 }
 @media (min-width: 641px) {
-  .bottom-tab-bar { display: none !important; }
   .hamburger { display: none !important; }
 }
-.tab-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 0 8px;
-  gap: 4px;
-  cursor: pointer;
-  background: none;
-  border: none;
-  font-family: 'Pretendard', sans-serif;
-  color: #8B95A1;
-  font-size: 10px;
-  font-weight: 500;
-  transition: color 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.tab-item.active { color: #3182F6; }
-.tab-item__icon { font-size: 22px; line-height: 1; }
-.tab-item__label { line-height: 1; }
 </style>
 </head>
 <body>
@@ -1255,26 +1218,6 @@ footer {
       <div class="i-row"><div class="i-icon" style="background:#E8FAF0">✅</div><div><strong>고령자 복약 관리 팁</strong><p>• 약 이름·용량·복용 시간을 적은 <strong>복약 리스트</strong>를 만들어 항상 지참<br>• 응급 시 의료진에게 보여줄 수 있도록 보호자와 공유<br>• 약천재 <strong>내 약통</strong>에 모든 약을 등록해 상호작용을 정기 체크</p></div></div>
     </div>
   </div>
-</div>
-
-<!-- ── 모바일 하단 탭바 ──────────────────────────────────── -->
-<div class="bottom-tab-bar" id="bottomTabBar">
-  <button class="tab-item active" id="tab-home" onclick="showPage('home', this, true)">
-    <span class="tab-item__icon">🔍</span>
-    <span class="tab-item__label">상호작용</span>
-  </button>
-  <button class="tab-item" id="tab-cabinet" onclick="showPage('cabinet', this, true)">
-    <span class="tab-item__icon">💊</span>
-    <span class="tab-item__label">내 약통</span>
-  </button>
-  <button class="tab-item" id="tab-symptoms" onclick="showPage('symptoms', this, true)">
-    <span class="tab-item__icon">🩺</span>
-    <span class="tab-item__label">증상검색</span>
-  </button>
-  <button class="tab-item" id="tab-guide" onclick="showPage('guide', this, true)">
-    <span class="tab-item__icon">📚</span>
-    <span class="tab-item__label">복약가이드</span>
-  </button>
 </div>
 
 <!-- ── AI 상담 플로팅 버튼 ─────────────────────────────── -->
