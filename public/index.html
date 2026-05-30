@@ -860,8 +860,21 @@ footer {
 .drawer-item:hover { background: var(--bg); }
 .drawer-item__icon { font-size: 20px; }
 
+/* ── 모바일 하단 탭바 ─────────────────────────────── */
+.bottom-tab-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 800;
+  background: #fff;
+  border-top: 1px solid #E5E8EB;
+  padding: 0;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+  display: none; /* 기본 숨김 */
+}
+
 /* ── 반응형 ─────────────────────────────────────────── */
 @media (max-width: 640px) {
+  .bottom-tab-bar { display: flex !important; }
   .hero h1 { font-size: 30px; }
   .hero-sub { font-size: 15px; }
   .feature-grid { grid-template-columns: repeat(2,1fr); }
@@ -870,24 +883,14 @@ footer {
   .hero { padding: 56px 20px 52px; }
   .search-card { padding: 20px; }
   body { padding-bottom: 72px; }
+  /* 모바일 nav: 로고 + 햄버거만 */
+  nav { justify-content: space-between; padding: 0 16px; }
+  .nav-logo-en { display: none; }
+  .nav-logo-divider { display: none; }
 }
 @media (min-width: 641px) {
   .bottom-tab-bar { display: none !important; }
-}
-
-/* ── 모바일 하단 탭바 ─────────────────────────────── */
-.bottom-tab-bar {
-  display: none;
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  z-index: 800;
-  background: #fff;
-  border-top: 1px solid #E5E8EB;
-  padding: 0;
-  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
-}
-@media (max-width: 640px) {
-  .bottom-tab-bar { display: flex; }
+  .hamburger { display: none !important; }
 }
 .tab-item {
   flex: 1;
