@@ -465,6 +465,24 @@ function updatePermBadge() {
   }
 }
 
+// ── 햄버거 드로어 ────────────────────────────────────────
+function toggleDrawer() {
+  const drawer = document.getElementById('drawer');
+  const overlay = document.getElementById('drawerOverlay');
+  const isOpen = drawer.classList.contains('open');
+  if (isOpen) closeDrawer();
+  else {
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
 // ── AI 챗봇 ──────────────────────────────────────────────
 function openChatBot() {
   document.getElementById('chatModal').classList.add('open');

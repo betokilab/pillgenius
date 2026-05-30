@@ -772,6 +772,94 @@ footer {
   line-height: 1.7;
 }
 
+/* ── 햄버거 버튼 ────────────────────────────────────── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px; height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: auto;
+  border-radius: 10px;
+  transition: background .15s;
+}
+.hamburger:hover { background: var(--bg); }
+.hamburger span {
+  display: block;
+  width: 22px; height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: all .2s;
+}
+@media (max-width: 640px) { .hamburger { display: flex; } }
+
+/* ── 드로어 오버레이 ─────────────────────────────────── */
+.drawer-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 500;
+}
+.drawer-overlay.open { display: block; }
+
+/* ── 드로어 ──────────────────────────────────────────── */
+.drawer {
+  position: fixed;
+  top: 0; right: 0;
+  width: 280px; height: 100%;
+  background: #fff;
+  z-index: 600;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+}
+.drawer.open { transform: translateX(0); }
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.drawer-logo { display: flex; align-items: center; }
+.drawer-close {
+  background: var(--bg);
+  border: none;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  display: flex; align-items: center; justify-content: center;
+}
+.drawer-menu { padding: 12px 12px; display: flex; flex-direction: column; gap: 4px; }
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: none;
+  border: none;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.drawer-item:hover { background: var(--bg); }
+.drawer-item__icon { font-size: 20px; }
+
 /* ── 반응형 ─────────────────────────────────────────── */
 @media (max-width: 640px) {
   .hero h1 { font-size: 30px; }
@@ -848,7 +936,41 @@ footer {
     <button class="nav-link" onclick="showPage('symptoms',this)">증상검색</button>
     <button class="nav-link" onclick="showPage('guide',this)">복약 가이드</button>
   </div>
+  <!-- 햄버거 버튼 (모바일 전용) -->
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleDrawer()" aria-label="메뉴">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- 모바일 드로어 메뉴 -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <span class="drawer-logo">
+      <svg width="22" height="22" viewBox="0 0 26 26" fill="none" style="margin-right:8px;flex-shrink:0">
+        <path d="M13 4.5C9.96243 4.5 7.5 6.96243 7.5 10V16C7.5 19.0376 9.96243 21.5 13 21.5V4.5Z" fill="#3182F6"/>
+        <path d="M13 4.5C16.0376 4.5 18.5 6.96243 18.5 10V16C18.5 19.0376 16.0376 21.5 13 21.5V4.5Z" fill="#93C5FD"/>
+        <line x1="7.5" y1="13" x2="18.5" y2="13" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <span style="font-weight:800;font-size:17px;color:#191F28">약천재</span>
+    </span>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-menu">
+    <button class="drawer-item" onclick="showPage('home');closeDrawer()">
+      <span class="drawer-item__icon">🔍</span>상호작용 체크
+    </button>
+    <button class="drawer-item" onclick="showPage('cabinet');closeDrawer()">
+      <span class="drawer-item__icon">💊</span>내 약통
+    </button>
+    <button class="drawer-item" onclick="showPage('symptoms');closeDrawer()">
+      <span class="drawer-item__icon">🩺</span>증상검색
+    </button>
+    <button class="drawer-item" onclick="showPage('guide');closeDrawer()">
+      <span class="drawer-item__icon">📚</span>복약 가이드
+    </button>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
