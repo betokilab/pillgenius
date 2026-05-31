@@ -612,6 +612,242 @@ async function sendChat() {
   }
 }
 
+// ── 맞춤 영양 퀴즈 ────────────────────────────────────────
+const QUIZ_STEPS = [
+  {
+    id: 'gender',
+    label: 'STEP 1 / 4',
+    q: '성별과 연령대를\n알려주세요',
+    sub: '나이에 따라 필요한 영양소가 달라져요',
+    type: 'single',
+    options: [
+      { icon:'👩', title:'여성 20-30대', desc:'호르몬·피부·철분 케어 중요', value:'f_young' },
+      { icon:'👨', title:'남성 20-30대', desc:'근육·에너지·스트레스 케어 중요', value:'m_young' },
+      { icon:'👩‍🦳', title:'여성 40-60대', desc:'갱년기·뼈·혈관 케어 중요', value:'f_mid' },
+      { icon:'👨‍🦳', title:'남성 40-60대', desc:'전립선·심혈관·뼈 케어 중요', value:'m_mid' },
+    ]
+  },
+  {
+    id: 'goal',
+    label: 'STEP 2 / 4',
+    q: '가장 원하는\n건강 목표는 뭐예요?',
+    sub: '가장 중요한 것 하나를 골라주세요',
+    type: 'single',
+    options: [
+      { icon:'⚡', title:'만성 피로 극복', desc:'에너지가 항상 부족해요', value:'energy' },
+      { icon:'🛡️', title:'면역력 강화', desc:'자주 아프거나 감기에 취약해요', value:'immune' },
+      { icon:'🦴', title:'뼈·관절 건강', desc:'관절이 아프거나 뼈가 걱정돼요', value:'bone' },
+      { icon:'✨', title:'피부·노화 방지', desc:'피부 트러블이나 노화가 걱정돼요', value:'skin' },
+    ]
+  },
+  {
+    id: 'symptoms',
+    label: 'STEP 3 / 4',
+    q: '요즘 겪고 있는\n불편함을 골라주세요',
+    sub: '해당하는 것을 모두 선택하세요',
+    type: 'multi',
+    options: [
+      { icon:'😴', title:'자주 피곤함', value:'fatigue' },
+      { icon:'😔', title:'집중력 저하', value:'focus' },
+      { icon:'🦷', title:'뼈·치아 약함', value:'bone_weak' },
+      { icon:'💤', title:'수면 장애', value:'sleep' },
+      { icon:'🤒', title:'면역력 약함', value:'immunity' },
+      { icon:'🫀', title:'혈압·혈관', value:'cardiovascular' },
+      { icon:'🏋️', title:'근육 부족', value:'muscle' },
+      { icon:'🌸', title:'피부 트러블', value:'skin_issue' },
+    ]
+  },
+  {
+    id: 'current',
+    label: 'STEP 4 / 4',
+    q: '현재 복용 중인\n영양제가 있나요?',
+    sub: '이미 먹고 있는 것을 모두 선택하세요',
+    type: 'multi',
+    options: [
+      { icon:'💊', title:'없음', value:'none' },
+      { icon:'🌈', title:'종합비타민', value:'multi' },
+      { icon:'🐟', title:'오메가3', value:'omega3' },
+      { icon:'☀️', title:'비타민D', value:'vitd' },
+      { icon:'🦴', title:'칼슘', value:'calcium' },
+      { icon:'🔴', title:'철분', value:'iron' },
+      { icon:'🌿', title:'마그네슘', value:'mag' },
+      { icon:'🧫', title:'유산균', value:'probiotics' },
+    ]
+  }
+];
+
+// 추천 로직
+const RECO_DB = {
+  '비타민D':    { icon:'☀️', reason:'뼈 건강, 면역력, 기분 개선에 필수예요. 한국인의 90% 이상이 부족합니다.', dosage:'권장 800~2000IU/일 · 지방식과 함께 복용', badge:'거의 필수' },
+  '오메가3':    { icon:'🐟', reason:'혈행 개선과 뇌 기능, 염증 감소에 도움이 돼요. EPA+DHA 합계 500mg 이상 섭취를 권장해요.', dosage:'권장 1000~2000mg/일 · 식후 복용', badge:'적극 추천' },
+  '마그네슘':   { icon:'🪨', reason:'스트레스 완화, 수면의 질 향상, 근육 이완에 효과적이에요. 현대인에게 가장 부족한 미네랄이에요.', dosage:'권장 200~400mg/일 · 취침 전 복용', badge:'강력 추천' },
+  '비타민C':    { icon:'🍊', reason:'강력한 항산화 효과와 면역력 증진, 콜라겐 합성에 필수적이에요.', dosage:'권장 500~1000mg/일 · 식후 복용', badge:'추천' },
+  '비타민B군':  { icon:'⚡', reason:'에너지 대사의 핵심! 피로 회복과 신경계 기능에 직접적으로 관여해요.', dosage:'권장 B-Complex 1정/일 · 아침 식후 복용', badge:'강력 추천' },
+  '칼슘':       { icon:'🦴', reason:'뼈와 치아를 만드는 핵심 미네랄이에요. 비타민D와 함께 복용하면 흡수율이 올라가요.', dosage:'권장 500~1000mg/일 · 분할 복용', badge:'추천' },
+  '아연':       { icon:'🔬', reason:'면역세포 생성과 피부 재생, 상처 치유에 중요한 역할을 해요.', dosage:'권장 10~15mg/일 · 식후 복용', badge:'추천' },
+  '철분':       { icon:'🔴', reason:'빈혈 예방과 에너지 생성에 필수적이에요. 특히 여성에게 중요해요.', dosage:'권장 10~18mg/일 · 공복 또는 비타민C와 함께', badge:'여성 필수' },
+  '코엔자임Q10':{ icon:'💛', reason:'세포 에너지(ATP) 생성을 돕고 강력한 항산화 효과가 있어요.', dosage:'권장 100~200mg/일 · 식후 복용', badge:'추천' },
+  '루테인':     { icon:'👁️', reason:'스마트폰·모니터 블루라이트로부터 눈 황반을 보호해요.', dosage:'권장 10~20mg/일 · 지방식과 함께', badge:'눈 건강' },
+  '글루코사민': { icon:'🦵', reason:'관절 연골을 보호하고 관절염 통증 완화에 도움을 줄 수 있어요.', dosage:'권장 1500mg/일 · 식후 복용', badge:'관절 추천' },
+  '유산균':     { icon:'🦠', reason:'장 건강 개선과 면역력의 70%를 담당하는 장내 환경을 개선해요.', dosage:'권장 100억 CFU/일 · 공복 또는 식전', badge:'장 건강' },
+};
+
+function getReco(answers) {
+  const recs = new Set();
+  const { gender, goal, symptoms, current } = answers;
+
+  // 거의 모든 사람 필수
+  recs.add('비타민D');
+
+  // 성별/연령 기반
+  if (gender?.includes('f')) recs.add('철분');
+  if (gender?.includes('mid')) { recs.add('코엔자임Q10'); recs.add('루테인'); }
+
+  // 목표 기반
+  if (goal === 'energy')  { recs.add('비타민B군'); recs.add('마그네슘'); recs.add('코엔자임Q10'); }
+  if (goal === 'immune')  { recs.add('비타민C'); recs.add('아연'); recs.add('유산균'); }
+  if (goal === 'bone')    { recs.add('칼슘'); recs.add('마그네슘'); recs.add('글루코사민'); }
+  if (goal === 'skin')    { recs.add('비타민C'); recs.add('아연'); recs.add('오메가3'); }
+
+  // 증상 기반
+  if (symptoms?.includes('fatigue')) { recs.add('비타민B군'); recs.add('마그네슘'); }
+  if (symptoms?.includes('focus'))   { recs.add('오메가3'); recs.add('비타민B군'); }
+  if (symptoms?.includes('bone_weak')){ recs.add('칼슘'); recs.add('비타민D'); }
+  if (symptoms?.includes('sleep'))    recs.add('마그네슘');
+  if (symptoms?.includes('immunity')) { recs.add('비타민C'); recs.add('아연'); }
+  if (symptoms?.includes('cardiovascular')) recs.add('오메가3');
+  if (symptoms?.includes('muscle'))   { recs.add('마그네슘'); recs.add('비타민D'); }
+  if (symptoms?.includes('skin_issue')){ recs.add('비타민C'); recs.add('아연'); }
+
+  // 이미 복용 중인 것 제외
+  const skip = {
+    multi: ['비타민B군','비타민C','비타민D','아연'],
+    omega3: ['오메가3'], vitd: ['비타민D'], calcium: ['칼슘'],
+    iron: ['철분'], mag: ['마그네슘'], probiotics: ['유산균'],
+  };
+  if (current && !current.includes('none')) {
+    current.forEach(k => { (skip[k]||[]).forEach(n => recs.delete(n)); });
+  }
+
+  // 최대 5개
+  return [...recs].slice(0, 5).filter(r => RECO_DB[r]);
+}
+
+let quizAnswers = {};
+let quizStep = 0;
+
+function openQuiz() {
+  quizAnswers = {}; quizStep = 0;
+  document.getElementById('quizOverlay').classList.add('open');
+  document.getElementById('quizModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderQuizStep();
+}
+function closeQuiz() {
+  document.getElementById('quizOverlay').classList.remove('open');
+  document.getElementById('quizModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderQuizStep() {
+  const step = QUIZ_STEPS[quizStep];
+  const pct = ((quizStep) / QUIZ_STEPS.length) * 100;
+  document.getElementById('quizProgressBar').style.width = pct + '%';
+
+  const body = document.getElementById('quizBody');
+  const isMulti = step.type === 'multi';
+  const selected = quizAnswers[step.id] || (isMulti ? [] : null);
+
+  body.innerHTML = `
+    <div class="quiz-step-label">${step.label}</div>
+    <div class="quiz-question">${step.q.replace('\n','<br>')}</div>
+    <div class="quiz-sub">${step.sub}</div>
+    <div class="${isMulti ? 'quiz-multi-options' : 'quiz-options'}" id="quizOptions">
+      ${step.options.map(opt => {
+        const sel = isMulti ? selected.includes(opt.value) : selected === opt.value;
+        return isMulti
+          ? `<button class="quiz-multi-option${sel?' selected':''}" onclick="quizSelect('${step.id}','${opt.value}',true)">
+               <span class="quiz-multi-option__icon">${opt.icon}</span>${opt.title}
+             </button>`
+          : `<button class="quiz-option${sel?' selected':''}" onclick="quizSelect('${step.id}','${opt.value}',false)">
+               <span class="quiz-option__icon">${opt.icon}</span>
+               <div class="quiz-option__text">
+                 <div class="quiz-option__title">${opt.title}</div>
+                 <div class="quiz-option__desc">${opt.desc||''}</div>
+               </div>
+             </button>`;
+      }).join('')}
+    </div>
+    <button class="quiz-next-btn" id="quizNextBtn" onclick="quizNext()" ${!selected||(isMulti&&!selected.length)?'disabled':''}>
+      ${quizStep < QUIZ_STEPS.length - 1 ? '다음 →' : '내 맞춤 영양제 보기 ✨'}
+    </button>`;
+}
+
+function quizSelect(stepId, value, isMulti) {
+  if (isMulti) {
+    if (!quizAnswers[stepId]) quizAnswers[stepId] = [];
+    const arr = quizAnswers[stepId];
+    const idx = arr.indexOf(value);
+    if (idx >= 0) arr.splice(idx, 1); else arr.push(value);
+  } else {
+    quizAnswers[stepId] = value;
+  }
+  renderQuizStep();
+}
+
+function quizNext() {
+  quizStep++;
+  if (quizStep >= QUIZ_STEPS.length) { renderQuizResult(); return; }
+  renderQuizStep();
+}
+
+function renderQuizResult() {
+  document.getElementById('quizProgressBar').style.width = '100%';
+  const recs = getReco(quizAnswers);
+  const genderLabel = quizAnswers.gender?.includes('f') ? '여성' : '남성';
+  const ageLabel = quizAnswers.gender?.includes('young') ? '20-30대' : '40-60대';
+
+  document.getElementById('quizBody').innerHTML = `
+    <div class="quiz-result-hero">
+      <div class="quiz-result-hero__emoji">🎯</div>
+      <div class="quiz-result-hero__title">${genderLabel} ${ageLabel}에게<br>딱 맞는 조합이에요</div>
+      <div class="quiz-result-hero__sub">식약처 데이터 기반으로 분석한<br>맞춤 영양제 ${recs.length}가지예요</div>
+    </div>
+    ${recs.map((name, i) => {
+      const r = RECO_DB[name];
+      return `<div class="quiz-rec-card">
+        <div class="quiz-rec-top">
+          <span class="quiz-rec-icon">${r.icon}</span>
+          <span class="quiz-rec-name">${name}</span>
+          <span class="quiz-rec-badge">${r.badge}</span>
+        </div>
+        <div class="quiz-rec-reason">${r.reason}</div>
+        <div class="quiz-rec-dosage">💡 ${r.dosage}</div>
+      </div>`;
+    }).join('')}
+    <div class="quiz-result-actions">
+      <button class="quiz-save-btn" onclick="saveQuizToNotes()">💊 약통에 저장하기</button>
+      <button class="quiz-retry-btn" onclick="quizStep=0;quizAnswers={};renderQuizStep()">다시 하기</button>
+    </div>
+    <p style="font-size:11px;color:#8B95A1;text-align:center;margin-top:16px;line-height:1.7">※ 개인 건강 상태에 따라 다를 수 있어요.<br>전문가 상담을 병행하시길 권장합니다.</p>`;
+}
+
+function saveQuizToNotes() {
+  const recs = getReco(quizAnswers);
+  let added = 0;
+  recs.forEach(name => {
+    if (!cabDrugs.find(d => d.name === name)) {
+      const color = COLORS[cabDrugs.length % COLORS.length];
+      cabDrugs.push({ seq: 'quiz-' + Date.now() + Math.random(), name, category: 'supplement', color });
+      added++;
+    }
+  });
+  localStorage.setItem('cab_drugs', JSON.stringify(cabDrugs));
+  renderCabList();
+  toast(`💊 ${added}개 영양제를 내 약통에 추가했어요!`);
+  closeQuiz();
+}
+
 // ── 메인 탭 전환 ──────────────────────────────────────────
 function switchMainTab(tab) {
   const isInteraction = tab === 'interaction';
