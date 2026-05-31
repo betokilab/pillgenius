@@ -1107,6 +1107,7 @@ footer {
     <button class="nav-link" onclick="showPage('cabinet',this)">내 약통</button>
     <button class="nav-link" onclick="showPage('symptoms',this)">증상검색</button>
     <button class="nav-link" onclick="showPage('guide',this)">복약 가이드</button>
+    <button class="nav-link" onclick="showPage('nutrition',this)">📸 영양 분석</button>
   </div>
   <!-- 햄버거 버튼 (모바일 전용) -->
   <button class="hamburger" id="hamburgerBtn" onclick="toggleDrawer()" aria-label="메뉴">
@@ -1140,6 +1141,9 @@ footer {
     </button>
     <button class="drawer-item" onclick="showPage('guide');closeDrawer()">
       <span class="drawer-item__icon">📚</span>복약 가이드
+    </button>
+    <button class="drawer-item" onclick="showPage('nutrition');closeDrawer()">
+      <span class="drawer-item__icon">📸</span>영양 분석
     </button>
   </div>
 </div>
@@ -1236,10 +1240,10 @@ footer {
         <div class="feature-name">복약 가이드</div>
         <div class="feature-desc">술·커피·우유와 약의 관계 총정리</div>
       </div>
-      <div class="feature-card" onclick="toast('곧 오픈합니다!')">
-        <div class="feature-icon-wrap">🤰</div>
-        <div class="feature-name">임신·수유</div>
-        <div class="feature-desc">임신 중 복용 가능 여부 확인 — 준비 중</div>
+      <div class="feature-card" onclick="showPage('nutrition')">
+        <div class="feature-icon-wrap">📸</div>
+        <div class="feature-name">영양 분석</div>
+        <div class="feature-desc">성분표 사진 찍으면 내 나이에 맞는지 분석</div>
       </div>
       <div class="feature-card" onclick="toast('곧 오픈합니다!')">
         <div class="feature-icon-wrap">🔄</div>
@@ -1420,221 +1424,178 @@ footer {
   </div>
 </div>
 
-<!-- ── AI 상담 플로팅 버튼 ─────────────────────────────── -->
-<button class="fab-chat" id="fabChat" onclick="openChatBot()">
-  <span class="fab-chat__icon">✨</span>
-  <span class="fab-chat__text">AI 약천재 상담</span>
-</button>
+<style>
+/* ── 영양 분석 페이지 ───────────────────────────────── */
+.nutr-wrap { max-width: 560px; margin: 0 auto; padding: 0 20px 60px; }
+.nutr-step { margin-bottom: 28px; }
+.nutr-step-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #EBF3FF; color: #3182F6;
+  font-size: 12px; font-weight: 700; padding: 4px 10px;
+  border-radius: 20px; margin-bottom: 12px;
+}
+.nutr-row { display: flex; gap: 12px; }
+.nutr-input {
+  flex: 1; border: 1.5px solid #E5E8EB; border-radius: 12px;
+  padding: 13px 16px; font-family: 'Pretendard', sans-serif;
+  font-size: 15px; color: #191F28; background: #F9FAFB; outline: none;
+  transition: border-color .15s, background .15s;
+}
+.nutr-input:focus { border-color: #3182F6; background: #fff; }
+.nutr-select {
+  flex: 1; border: 1.5px solid #E5E8EB; border-radius: 12px;
+  padding: 13px 16px; font-family: 'Pretendard', sans-serif;
+  font-size: 15px; color: #191F28; background: #F9FAFB; outline: none;
+  cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 7L11 1' stroke='%238B95A1' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  padding-right: 36px;
+}
+/* 사진 업로드 영역 */
+.photo-upload-area {
+  border: 2px dashed #D1D9E0; border-radius: 20px;
+  padding: 40px 20px; text-align: center; cursor: pointer;
+  transition: border-color .2s, background .2s; background: #F9FAFB;
+  position: relative;
+}
+.photo-upload-area:hover { border-color: #3182F6; background: #EBF3FF; }
+.photo-upload-area input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.photo-upload-area__icon { font-size: 48px; margin-bottom: 12px; }
+.photo-upload-area__title { font-size: 16px; font-weight: 700; color: #191F28; margin-bottom: 6px; }
+.photo-upload-area__sub { font-size: 13px; color: #8B95A1; line-height: 1.6; }
+.photo-preview {
+  width: 100%; max-height: 260px; object-fit: contain;
+  border-radius: 16px; margin-top: 16px; display: none;
+}
+/* OCR 로딩 */
+.ocr-loading {
+  display: none; text-align: center; padding: 32px;
+  font-size: 14px; color: #8B95A1;
+}
+.ocr-loading .ocr-spinner {
+  width: 32px; height: 32px; border: 3px solid #E5E8EB;
+  border-top-color: #3182F6; border-radius: 50%;
+  animation: spin .8s linear infinite; margin: 0 auto 12px;
+}
+/* 수동 입력 테이블 */
+.nutr-table { width: 100%; border-collapse: collapse; }
+.nutr-table th {
+  text-align: left; font-size: 12px; font-weight: 600;
+  color: #8B95A1; padding: 8px 0; border-bottom: 1px solid #E5E8EB;
+}
+.nutr-table td { padding: 8px 4px; border-bottom: 1px solid #F2F4F6; }
+.nutr-table td input {
+  width: 90px; border: 1.5px solid #E5E8EB; border-radius: 8px;
+  padding: 6px 10px; font-family: 'Pretendard', sans-serif;
+  font-size: 14px; text-align: right; outline: none;
+  transition: border-color .15s;
+}
+.nutr-table td input:focus { border-color: #3182F6; }
+.nutr-name { font-size: 14px; font-weight: 500; color: #191F28; }
+.nutr-unit { font-size: 12px; color: #8B95A1; margin-left: 4px; }
+/* 분석 버튼 */
+.nutr-analyze-btn {
+  width: 100%; padding: 16px; background: #3182F6; color: #fff;
+  border: none; border-radius: 16px; font-family: 'Pretendard', sans-serif;
+  font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 20px;
+  transition: background .15s, transform .15s;
+}
+.nutr-analyze-btn:hover { background: #1B6EE4; transform: translateY(-1px); }
+/* 결과 카드 */
+.nutr-result { margin-top: 28px; display: none; }
+.nutr-result-header {
+  font-size: 16px; font-weight: 700; color: #191F28;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.nutr-result-card {
+  background: #fff; border-radius: 20px; overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06); margin-bottom: 12px;
+}
+.nutr-result-item {
+  display: flex; align-items: center; padding: 14px 18px;
+  border-bottom: 1px solid #F2F4F6; gap: 12px;
+}
+.nutr-result-item:last-child { border-bottom: none; }
+.nutr-status-badge {
+  flex-shrink: 0; padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; min-width: 48px; text-align: center;
+}
+.nutr-status-badge.ok    { background: #E8FAF0; color: #00B761; }
+.nutr-status-badge.low   { background: #FFF4E6; color: #E07300; }
+.nutr-status-badge.high  { background: #FFF0F0; color: #F04452; }
+.nutr-result-name { font-size: 14px; font-weight: 600; color: #191F28; flex: 1; }
+.nutr-result-value { font-size: 13px; color: #8B95A1; }
+.nutr-result-bar-wrap { height: 6px; background: #F2F4F6; border-radius: 99px; flex: 1; min-width: 60px; }
+.nutr-result-bar { height: 100%; border-radius: 99px; transition: width .6s ease; }
+.nutr-disclaimer {
+  font-size: 12px; color: #8B95A1; text-align: center;
+  line-height: 1.6; margin-top: 16px; padding: 0 8px;
+}
+</style>
 
-<!-- ── AI 상담 챗봇 모달 ─────────────────────────────── -->
-<div class="chat-modal" id="chatModal">
-  <div class="chat-modal__box">
-    <div class="chat-modal__header">
-      <div class="chat-modal__title">
-        <span>✨</span>
-        <span>AI 약천재 상담</span>
+<!-- ===== 영양 분석 ===== -->
+<div class="page" id="page-nutrition">
+  <div class="page-header">
+    <div class="page-header-inner">
+      <h1>📸 영양 분석</h1>
+      <p>영양성분표를 찍으면 내 나이에 맞는지 분석해 드려요</p>
+    </div>
+  </div>
+
+  <div class="nutr-wrap">
+
+    <!-- Step 1: 나이/성별 -->
+    <div class="nutr-step">
+      <div class="nutr-step-label">Step 1 · 기본 정보</div>
+      <div class="nutr-row">
+        <input class="nutr-input" type="number" id="nutrAge" placeholder="나이 (예: 35)" min="1" max="100">
+        <select class="nutr-select" id="nutrGender">
+          <option value="female">여성</option>
+          <option value="male">남성</option>
+        </select>
       </div>
-      <button class="chat-modal__close" onclick="closeChatBot()">✕</button>
     </div>
-    <div class="chat-modal__messages" id="chatMessages">
-      <div class="chat-msg chat-msg--bot">
-        <div class="chat-msg__bubble">안녕하세요! 약천재 AI입니다 💊<br>복용 중인 약이나 영양제에 대해 궁금한 점을 자유롭게 물어보세요.</div>
+
+    <!-- Step 2: 사진 업로드 -->
+    <div class="nutr-step">
+      <div class="nutr-step-label">Step 2 · 영양성분표 사진</div>
+      <div class="photo-upload-area" id="photoUploadArea">
+        <input type="file" accept="image/*" capture="environment" id="nutrImageInput" onchange="handleNutrImage(this)">
+        <div class="photo-upload-area__icon">📷</div>
+        <div class="photo-upload-area__title">사진을 촬영하거나 업로드하세요</div>
+        <div class="photo-upload-area__sub">영양성분표가 잘 보이도록 찍어주세요<br>JPG, PNG, HEIC 지원</div>
+      </div>
+      <img id="nutrPreview" class="photo-preview" alt="미리보기">
+      <div class="ocr-loading" id="ocrLoading">
+        <div class="ocr-spinner"></div>
+        영양성분표를 읽는 중이에요...
       </div>
     </div>
-    <div class="chat-modal__input-wrap">
-      <input class="chat-modal__input" id="chatInput" type="text" placeholder="예: 타이레놀과 와파린 같이 먹어도 돼?" onkeydown="if(event.key==='Enter') sendChat()">
-      <button class="chat-modal__send" onclick="sendChat()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+
+    <!-- Step 3: 영양소 입력 (OCR 결과 또는 수동 입력) -->
+    <div class="nutr-step" id="nutrInputStep">
+      <div class="nutr-step-label">Step 3 · 영양소 함량 확인 · 수정</div>
+      <p style="font-size:13px;color:#8B95A1;margin-bottom:14px;line-height:1.6">OCR로 자동 추출됩니다. 잘못된 값은 직접 수정하세요.</p>
+      <table class="nutr-table">
+        <thead><tr><th>영양소</th><th style="text-align:right">함량</th><th style="padding-left:8px">단위</th></tr></thead>
+        <tbody id="nutrTableBody"></tbody>
+      </table>
+      <button class="nutr-analyze-btn" onclick="analyzeNutrition()">✨ 내 나이 기준으로 분석하기</button>
     </div>
+
+    <!-- 결과 -->
+    <div class="nutr-result" id="nutrResult">
+      <div class="nutr-result-header">📊 분석 결과</div>
+      <div id="nutrResultCards"></div>
+      <p class="nutr-disclaimer">※ 이 분석은 한국인 영양소 섭취기준(2020)을 참고합니다.<br>개인 건강 상태에 따라 다를 수 있으며, 전문가 상담을 권장합니다.</p>
+    </div>
+
   </div>
 </div>
 
-<style>
-/* ── 플로팅 버튼 ─────────────────────────── */
-.fab-chat {
-  position: fixed;
-  bottom: 32px;
-  right: 28px;
-  z-index: 900;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 24px;
-  background: #3182F6;
-  color: #fff;
-  border: none;
-  border-radius: 999px;
-  font-family: 'Pretendard', sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(49,130,246,0.40), 0 2px 8px rgba(49,130,246,0.20);
-  transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), box-shadow 0.22s ease;
-  white-space: nowrap;
-}
-.fab-chat:hover {
-  transform: translateY(-4px) scale(1.04);
-  box-shadow: 0 14px 32px rgba(49,130,246,0.50), 0 4px 12px rgba(49,130,246,0.25);
-}
-.fab-chat:active {
-  transform: translateY(-1px) scale(0.99);
-}
-.fab-chat__icon { font-size: 18px; }
-/* 모바일: 텍스트 숨기고 아이콘만 원형 버튼으로 */
-@media (max-width: 640px) {
-  .fab-chat {
-    bottom: 24px;
-    right: 20px;
-    width: 56px;
-    height: 56px;
-    padding: 0;
-    justify-content: center;
-    border-radius: 50%;
-  }
-  .fab-chat__text { display: none; }
-  .fab-chat__icon { font-size: 24px; }
-}
-
-/* ── 챗봇 모달 ─────────────────────────── */
-.chat-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  align-items: flex-end;
-  justify-content: flex-end;
-  padding: 0 28px 96px 28px;
-}
-.chat-modal.open { display: flex; }
-.chat-modal__box {
-  width: 380px;
-  max-width: calc(100vw - 48px);
-  background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  animation: chatSlideUp 0.28s cubic-bezier(.34,1.3,.64,1);
-}
-@keyframes chatSlideUp {
-  from { opacity: 0; transform: translateY(20px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-/* 모바일: 하단 전체 시트 스타일 */
-@media (max-width: 640px) {
-  .chat-modal {
-    padding: 0;
-    align-items: flex-end;
-    justify-content: center;
-    background: rgba(0,0,0,0.35);
-  }
-  .chat-modal__box {
-    width: 100%;
-    max-width: 100%;
-    border-radius: 24px 24px 0 0;
-    max-height: 80vh;
-    animation: chatSlideUpMobile 0.3s cubic-bezier(.34,1.1,.64,1);
-  }
-  @keyframes chatSlideUpMobile {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-  }
-}
-.chat-modal__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 20px;
-  background: #3182F6;
-  color: #fff;
-}
-.chat-modal__title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 700;
-}
-.chat-modal__close {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  color: #fff;
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s;
-}
-.chat-modal__close:hover { background: rgba(255,255,255,0.35); }
-.chat-modal__messages {
-  flex: 1;
-  padding: 16px;
-  min-height: 280px;
-  max-height: 380px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: #F8FAFC;
-}
-.chat-msg { display: flex; }
-.chat-msg--bot { justify-content: flex-start; }
-.chat-msg--user { justify-content: flex-end; }
-.chat-msg__bubble {
-  max-width: 80%;
-  padding: 10px 14px;
-  border-radius: 16px;
-  font-size: 14px;
-  line-height: 1.6;
-}
-.chat-msg--bot .chat-msg__bubble {
-  background: #fff;
-  color: #191F28;
-  border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-}
-.chat-msg--user .chat-msg__bubble {
-  background: #3182F6;
-  color: #fff;
-  border-bottom-right-radius: 4px;
-}
-.chat-msg--typing .chat-msg__bubble { color: #8B95A1; font-style: italic; }
-.chat-modal__input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  border-top: 1px solid #E5E8EB;
-  background: #fff;
-}
-.chat-modal__input {
-  flex: 1;
-  border: 1.5px solid #E5E8EB;
-  border-radius: 12px;
-  padding: 10px 14px;
-  font-family: 'Pretendard', sans-serif;
-  font-size: 14px;
-  color: #191F28;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.chat-modal__input:focus { border-color: #3182F6; }
-.chat-modal__send {
-  width: 40px; height: 40px;
-  background: #3182F6;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s, transform 0.15s;
-  flex-shrink: 0;
-}
-.chat-modal__send:hover { background: #1B6EE4; transform: scale(1.05); }
-</style>
-
+<script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

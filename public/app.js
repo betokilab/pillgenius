@@ -612,11 +612,171 @@ async function sendChat() {
   }
 }
 
+// ── 영양 분석 ─────────────────────────────────────────────
+
+// 한국인 영양소 섭취기준 (2020) - [남성, 여성] 권장/충분 섭취량
+// age group: 0=1-2, 1=3-5, 2=6-8, 3=9-11, 4=12-14, 5=15-18, 6=19-29, 7=30-49, 8=50-64, 9=65-74, 10=75+
+const NUTR_DRI = {
+  '비타민A':   { unit:'mcg RAE', ul:3000,  male:[200,230,300,400,550,650,800,800,750,700,700], female:[200,230,300,400,500,550,650,650,600,600,600] },
+  '비타민C':   { unit:'mg',      ul:2000,  male:[40,45,55,70,90,105,100,100,100,100,100],       female:[40,45,55,70,90,95,100,100,100,100,100] },
+  '비타민D':   { unit:'mcg',     ul:100,   male:[5,5,5,5,10,10,10,10,15,15,15],                female:[5,5,5,5,10,10,10,10,15,15,15] },
+  '비타민E':   { unit:'mg',      ul:540,   male:[4,5,6,7,10,11,12,12,12,12,12],                female:[4,5,6,7,9,10,12,12,12,12,12] },
+  '비타민B1':  { unit:'mg',      ul:null,  male:[0.4,0.5,0.7,0.9,1.1,1.3,1.2,1.2,1.2,1.2,1.2],female:[0.4,0.5,0.7,0.8,1.0,1.1,1.1,1.1,1.1,1.1,1.1] },
+  '비타민B2':  { unit:'mg',      ul:null,  male:[0.5,0.6,0.8,1.0,1.3,1.5,1.3,1.3,1.3,1.3,1.3],female:[0.5,0.6,0.8,1.0,1.2,1.2,1.2,1.2,1.2,1.2,1.2] },
+  '비타민B6':  { unit:'mg',      ul:100,   male:[0.5,0.6,0.7,0.9,1.3,1.5,1.5,1.5,1.5,1.5,1.5],female:[0.5,0.6,0.7,0.9,1.2,1.2,1.4,1.4,1.4,1.4,1.4] },
+  '비타민B12': { unit:'mcg',     ul:null,  male:[0.9,1.1,1.3,1.7,2.3,2.7,2.4,2.4,2.4,2.4,2.4],female:[0.9,1.1,1.3,1.7,2.3,2.7,2.4,2.4,2.4,2.4,2.4] },
+  '엽산':      { unit:'mcg',     ul:1000,  male:[150,200,220,300,360,400,400,400,400,400,400],  female:[150,200,220,300,360,400,400,400,400,400,400] },
+  '칼슘':      { unit:'mg',      ul:2500,  male:[500,600,700,800,1000,900,800,800,750,700,700], female:[500,600,700,800,900,800,700,700,800,800,800] },
+  '마그네슘':  { unit:'mg',      ul:350,   male:[80,100,130,170,240,330,350,370,350,350,350],   female:[80,100,130,160,220,280,280,280,280,280,280] },
+  '철분':      { unit:'mg',      ul:45,    male:[7,7,8,9,11,14,10,10,10,10,10],                female:[7,7,8,9,16,14,14,14,8,8,8] },
+  '아연':      { unit:'mg',      ul:35,    male:[3,4,5,6,8,10,10,10,10,10,10],                 female:[3,4,5,6,8,9,8,8,8,8,8] },
+  '오메가3':   { unit:'mg',      ul:null,  male:[null,null,null,null,null,null,500,500,500,500,500], female:[null,null,null,null,null,null,500,500,500,500,500] },
+};
+
+const AGE_GROUPS = [2,5,8,11,14,18,29,49,64,74,Infinity];
+
+function getAgeGroupIdx(age) {
+  for (let i = 0; i < AGE_GROUPS.length; i++) {
+    if (age <= AGE_GROUPS[i]) return i;
+  }
+  return AGE_GROUPS.length - 1;
+}
+
+// 기본 영양소 목록
+const DEFAULT_NUTRIENTS = ['비타민A','비타민C','비타민D','비타민E','비타민B1','비타민B2','비타민B6','비타민B12','엽산','칼슘','마그네슘','철분','아연','오메가3'];
+
+function renderNutrTable(extracted = {}) {
+  const tbody = document.getElementById('nutrTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = DEFAULT_NUTRIENTS.map(name => {
+    const dri = NUTR_DRI[name];
+    const val = extracted[name] || '';
+    return `<tr>
+      <td><span class="nutr-name">${name}</span></td>
+      <td><input type="number" id="nutr-val-${name}" value="${val}" placeholder="0" min="0" step="0.1"></td>
+      <td><span class="nutr-unit">${dri.unit}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('nutrInputStep').style.display = '';
+}
+
+async function handleNutrImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  // 미리보기
+  const preview = document.getElementById('nutrPreview');
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = 'block';
+  // OCR
+  document.getElementById('ocrLoading').style.display = 'block';
+  document.getElementById('nutrInputStep').style.display = 'none';
+  try {
+    const result = await Tesseract.recognize(file, 'kor+eng', {
+      logger: () => {}
+    });
+    const text = result.data.text;
+    const extracted = parseNutrText(text);
+    renderNutrTable(extracted);
+  } catch(e) {
+    renderNutrTable({});
+  } finally {
+    document.getElementById('ocrLoading').style.display = 'none';
+  }
+}
+
+function parseNutrText(text) {
+  const extracted = {};
+  const patterns = [
+    { keys: ['비타민a','비타민 a','vitamin a'], name: '비타민A' },
+    { keys: ['비타민c','비타민 c','vitamin c','아스코르브'], name: '비타민C' },
+    { keys: ['비타민d','비타민 d','vitamin d'], name: '비타민D' },
+    { keys: ['비타민e','비타민 e','vitamin e','토코페롤'], name: '비타민E' },
+    { keys: ['비타민b1','비타민 b1','티아민'], name: '비타민B1' },
+    { keys: ['비타민b2','비타민 b2','리보플라빈'], name: '비타민B2' },
+    { keys: ['비타민b6','비타민 b6'], name: '비타민B6' },
+    { keys: ['비타민b12','비타민 b12'], name: '비타민B12' },
+    { keys: ['엽산','폴산','folic'], name: '엽산' },
+    { keys: ['칼슘','calcium'], name: '칼슘' },
+    { keys: ['마그네슘','magnesium'], name: '마그네슘' },
+    { keys: ['철','iron','철분'], name: '철분' },
+    { keys: ['아연','zinc'], name: '아연' },
+    { keys: ['오메가3','omega','epa','dha'], name: '오메가3' },
+  ];
+  const lines = text.toLowerCase().split('\n');
+  lines.forEach(line => {
+    patterns.forEach(p => {
+      if (p.keys.some(k => line.includes(k))) {
+        const numMatch = line.match(/[\d,]+\.?\d*/);
+        if (numMatch) {
+          const val = parseFloat(numMatch[0].replace(',',''));
+          if (!isNaN(val) && val > 0) extracted[p.name] = val;
+        }
+      }
+    });
+  });
+  return extracted;
+}
+
+function analyzeNutrition() {
+  const age = parseInt(document.getElementById('nutrAge')?.value);
+  const gender = document.getElementById('nutrGender')?.value || 'female';
+  if (!age || age < 1 || age > 120) {
+    toast('나이를 올바르게 입력해 주세요');
+    return;
+  }
+  const ageIdx = getAgeGroupIdx(age);
+  const results = [];
+  DEFAULT_NUTRIENTS.forEach(name => {
+    const inp = document.getElementById(`nutr-val-${name}`);
+    if (!inp) return;
+    const val = parseFloat(inp.value);
+    if (isNaN(val) || val <= 0) return;
+    const dri = NUTR_DRI[name];
+    const rda = dri[gender][ageIdx];
+    if (!rda) return;
+    const ul = dri.ul;
+    const pct = Math.round((val / rda) * 100);
+    let status, label;
+    if (ul && val > ul) { status = 'high'; label = '과다'; }
+    else if (pct >= 80) { status = 'ok';   label = '적절'; }
+    else if (pct >= 30) { status = 'low';  label = '부족'; }
+    else                { status = 'low';  label = '많이 부족'; }
+    results.push({ name, val, unit: dri.unit, rda, pct: Math.min(pct, 200), status, label });
+  });
+  if (!results.length) { toast('영양소 함량을 하나 이상 입력해 주세요'); return; }
+  renderNutrResult(results, age, gender === 'male' ? '남성' : '여성');
+}
+
+function renderNutrResult(results, age, genderLabel) {
+  const container = document.getElementById('nutrResultCards');
+  const resultEl = document.getElementById('nutrResult');
+  const colorMap = { ok: '#00B761', low: '#FF9500', high: '#F04452' };
+  container.innerHTML = results.map(r => {
+    const barW = Math.min(r.pct, 100);
+    return `<div class="nutr-result-card">
+      <div class="nutr-result-item">
+        <span class="nutr-status-badge ${r.status}">${r.label}</span>
+        <span class="nutr-result-name">${r.name}</span>
+        <div style="flex:1;margin:0 12px">
+          <div class="nutr-result-bar-wrap">
+            <div class="nutr-result-bar" style="width:${barW}%;background:${colorMap[r.status]}"></div>
+          </div>
+        </div>
+        <span class="nutr-result-value">${r.val}${r.unit}<br><span style="font-size:11px">권장 ${r.rda}${r.unit}</span></span>
+      </div>
+    </div>`;
+  }).join('');
+  resultEl.style.display = 'block';
+  resultEl.querySelector('.nutr-result-header').textContent = `📊 ${age}세 ${genderLabel} 기준 분석 결과`;
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 // ── 초기화 ────────────────────────────────────────────────
 renderSymptoms();
 renderCabList();
 loadStats();
 renderAlarms();
 renderDrugTags();
+renderNutrTable();
 updatePermBadge();
 setInterval(renderAlarms, 60000);
