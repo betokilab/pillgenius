@@ -1156,50 +1156,92 @@ footer {
   <!-- ── Track A: 스마트 검색 ── -->
   <section class="track-a">
     <div class="track-a__inner">
-      <h1 class="track-a__headline">내가 먹는 약과 영양제,<br><span>같이 먹어도 될까?</span></h1>
+      <h1 class="track-a__headline">내가 먹는 약과 영양제,<br><span>괜찮을까?</span></h1>
 
-      <!-- 통합 검색창 -->
-      <div class="unified-search" style="position:relative;margin-bottom:20px">
-        <!-- 선택된 약 태그 -->
-        <div class="selected-drugs-wrap" id="selectedDrugsWrap"></div>
-
-        <!-- 메인 입력창 -->
-        <div class="search-input-wrap" id="mainSearchWrap">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="#8B95A1" stroke-width="1.8"/><path d="M12 12L16 16" stroke="#8B95A1" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <input type="text" id="mainInput" placeholder="약 이름이나 성분을 검색해 보세요"
-            oninput="onSearch(this,currentSlotIdx)" onfocus="onSearch(this,currentSlotIdx)" onblur="hideAc(currentSlotIdx)" autocomplete="off">
-          <button class="search-go-btn" onclick="checkInteraction()" id="searchGoBtn" style="display:none">분석하기</button>
-        </div>
-        <div class="unified-ac" id="ac-0" style="display:none"></div>
-        <div class="unified-ac" id="ac-1" style="display:none"></div>
-        <div class="unified-ac" id="ac-2" style="display:none"></div>
-
-        <!-- 분석하기 버튼 (2개 선택 후) -->
-        <button class="analyze-big-btn" id="analyzeBigBtn" onclick="checkInteraction()">
-          🔍 상호작용 분석하기
+      <!-- 메인 탭 -->
+      <div class="main-tabs">
+        <button class="main-tab active" id="mainTabInteraction" onclick="switchMainTab('interaction')">
+          💊 상호작용 체크
+        </button>
+        <button class="main-tab" id="mainTabNutrition" onclick="switchMainTab('nutrition')">
+          📸 영양 분석
         </button>
       </div>
 
-      <!-- 인기 검색어 칩 -->
-      <div class="trending-chips">
-        <span class="trending-label">🔥 요즘 많이 찾는 팩트체크</span>
-        <div class="chips-scroll">
-          <button class="chip" onclick="chipSearch('오메가3')">오메가3</button>
-          <button class="chip" onclick="chipSearch('타이레놀')">타이레놀</button>
-          <button class="chip" onclick="chipSearch('센트룸')">센트룸</button>
-          <button class="chip" onclick="chipSearch('아스피린')">아스피린</button>
-          <button class="chip" onclick="chipSearch('비타민D')">비타민D</button>
-          <button class="chip" onclick="chipSearch('이부프로펜')">이부프로펜</button>
+      <!-- Tab A: 상호작용 체크 -->
+      <div id="tabPanelInteraction">
+        <div class="unified-search" style="position:relative;margin-bottom:20px">
+          <div class="selected-drugs-wrap" id="selectedDrugsWrap"></div>
+          <div class="search-input-wrap" id="mainSearchWrap">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="#8B95A1" stroke-width="1.8"/><path d="M12 12L16 16" stroke="#8B95A1" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <input type="text" id="mainInput" placeholder="약 이름이나 성분을 검색해 보세요"
+              oninput="onSearch(this,currentSlotIdx)" onfocus="onSearch(this,currentSlotIdx)" onblur="hideAc(currentSlotIdx)" autocomplete="off">
+          </div>
+          <div class="unified-ac" id="ac-0" style="display:none"></div>
+          <div class="unified-ac" id="ac-1" style="display:none"></div>
+          <div class="unified-ac" id="ac-2" style="display:none"></div>
+          <button class="analyze-big-btn" id="analyzeBigBtn" onclick="checkInteraction()">🔍 상호작용 분석하기</button>
+        </div>
+        <div class="trending-chips">
+          <span class="trending-label">🔥 요즘 많이 찾는 팩트체크</span>
+          <div class="chips-scroll">
+            <button class="chip" onclick="chipSearch('오메가3')">오메가3</button>
+            <button class="chip" onclick="chipSearch('타이레놀')">타이레놀</button>
+            <button class="chip" onclick="chipSearch('센트룸')">센트룸</button>
+            <button class="chip" onclick="chipSearch('아스피린')">아스피린</button>
+            <button class="chip" onclick="chipSearch('비타민D')">비타민D</button>
+            <button class="chip" onclick="chipSearch('이부프로펜')">이부프로펜</button>
+          </div>
+        </div>
+        <div class="sev-row" style="margin-top:20px">
+          <span class="sev-chip"><span class="sev-dot" style="background:#00B761"></span>안전</span>
+          <span class="sev-chip"><span class="sev-dot" style="background:#FF9500"></span>주의</span>
+          <span class="sev-chip"><span class="sev-dot" style="background:#F04452"></span>경고</span>
+          <span class="sev-chip"><span class="sev-dot" style="background:#8B0000"></span>위험</span>
         </div>
       </div>
 
-      <!-- 심각도 범례 -->
-      <div class="sev-row" style="margin-top:24px">
-        <span class="sev-chip"><span class="sev-dot" style="background:#00B761"></span>안전</span>
-        <span class="sev-chip"><span class="sev-dot" style="background:#FF9500"></span>주의</span>
-        <span class="sev-chip"><span class="sev-dot" style="background:#F04452"></span>경고</span>
-        <span class="sev-chip"><span class="sev-dot" style="background:#8B0000"></span>위험</span>
+      <!-- Tab B: 영양 분석 (인라인) -->
+      <div id="tabPanelNutrition" style="display:none">
+        <!-- 나이/성별 -->
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <input class="nutr-input" type="number" id="mainNutrAge" placeholder="나이 (예: 35)" min="1" max="100" style="flex:1">
+          <select class="nutr-select" id="mainNutrGender" style="flex:1">
+            <option value="female">여성</option>
+            <option value="male">남성</option>
+          </select>
+        </div>
+        <!-- 제품명 입력 (약통 추가용) -->
+        <input class="nutr-input" type="text" id="mainNutrProduct" placeholder="영양제 이름 (예: 센트룸 실버)" style="width:100%;margin-bottom:16px">
+        <!-- 사진 업로드 -->
+        <div class="photo-upload-area" id="mainPhotoArea" style="margin-bottom:16px">
+          <input type="file" accept="image/*" capture="environment" id="mainNutrImage" onchange="handleMainNutrImage(this)">
+          <div class="photo-upload-area__icon" style="font-size:36px">📷</div>
+          <div class="photo-upload-area__title" style="font-size:15px">영양성분표 촬영 또는 업로드</div>
+          <div class="photo-upload-area__sub">찍으면 자동으로 영양소를 읽어드려요</div>
+        </div>
+        <img id="mainNutrPreview" class="photo-preview" alt="미리보기">
+        <div class="ocr-loading" id="mainOcrLoading">
+          <div class="ocr-spinner"></div>영양성분표를 읽는 중이에요...
+        </div>
+        <!-- 영양소 간이 입력 -->
+        <div id="mainNutrInputArea" style="display:none">
+          <p style="font-size:13px;color:#8B95A1;margin-bottom:10px">자동 추출된 값을 확인하고 수정하세요</p>
+          <div id="mainNutrFields" style="display:flex;flex-direction:column;gap:8px"></div>
+          <button class="nutr-analyze-btn" onclick="analyzeMainNutrition()">✨ 내 나이 기준으로 분석하기</button>
+        </div>
+        <!-- 결과 -->
+        <div id="mainNutrResult" style="display:none;margin-top:20px">
+          <div style="font-size:15px;font-weight:700;color:#191F28;margin-bottom:12px" id="mainNutrResultTitle"></div>
+          <div id="mainNutrResultCards"></div>
+          <!-- 약통 추가 버튼 -->
+          <button id="addToCabFromNutr" onclick="addNutrToCabinet()" style="display:none;width:100%;margin-top:16px;padding:14px;background:#EBF3FF;color:#3182F6;border:none;border-radius:14px;font-family:Pretendard,sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s">
+            💊 내 약통에 추가하기
+          </button>
+          <p style="font-size:11px;color:#8B95A1;text-align:center;margin-top:12px;line-height:1.6">한국인 영양소 섭취기준(2020) 기반 · 참고용입니다</p>
+        </div>
       </div>
+
     </div>
   </section>
 
@@ -1425,6 +1467,19 @@ footer {
 </div>
 
 <style>
+/* ── 메인 탭 ────────────────────────────────────────── */
+.main-tabs {
+  display: flex; gap: 6px; margin-bottom: 24px;
+  background: #F2F4F6; border-radius: 14px; padding: 4px;
+}
+.main-tab {
+  flex: 1; padding: 10px 8px; border: none; border-radius: 10px;
+  font-family: 'Pretendard', sans-serif; font-size: 14px; font-weight: 600;
+  color: #8B95A1; background: transparent; cursor: pointer;
+  transition: all .18s; white-space: nowrap;
+}
+.main-tab.active { background: #fff; color: #191F28; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
 /* ── 영양 분석 페이지 ───────────────────────────────── */
 .nutr-wrap { max-width: 560px; margin: 0 auto; padding: 0 20px 60px; }
 .nutr-step { margin-bottom: 28px; }
