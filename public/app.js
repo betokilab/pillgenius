@@ -678,18 +678,165 @@ const QUIZ_STEPS = [
 
 // 추천 로직
 const RECO_DB = {
-  '비타민D':    { icon:'☀️', reason:'뼈 건강, 면역력, 기분 개선에 필수예요. 한국인의 90% 이상이 부족합니다.', dosage:'권장 800~2000IU/일 · 지방식과 함께 복용', badge:'거의 필수' },
-  '오메가3':    { icon:'🐟', reason:'혈행 개선과 뇌 기능, 염증 감소에 도움이 돼요. EPA+DHA 합계 500mg 이상 섭취를 권장해요.', dosage:'권장 1000~2000mg/일 · 식후 복용', badge:'적극 추천' },
-  '마그네슘':   { icon:'🪨', reason:'스트레스 완화, 수면의 질 향상, 근육 이완에 효과적이에요. 현대인에게 가장 부족한 미네랄이에요.', dosage:'권장 200~400mg/일 · 취침 전 복용', badge:'강력 추천' },
-  '비타민C':    { icon:'🍊', reason:'강력한 항산화 효과와 면역력 증진, 콜라겐 합성에 필수적이에요.', dosage:'권장 500~1000mg/일 · 식후 복용', badge:'추천' },
-  '비타민B군':  { icon:'⚡', reason:'에너지 대사의 핵심! 피로 회복과 신경계 기능에 직접적으로 관여해요.', dosage:'권장 B-Complex 1정/일 · 아침 식후 복용', badge:'강력 추천' },
-  '칼슘':       { icon:'🦴', reason:'뼈와 치아를 만드는 핵심 미네랄이에요. 비타민D와 함께 복용하면 흡수율이 올라가요.', dosage:'권장 500~1000mg/일 · 분할 복용', badge:'추천' },
-  '아연':       { icon:'🔬', reason:'면역세포 생성과 피부 재생, 상처 치유에 중요한 역할을 해요.', dosage:'권장 10~15mg/일 · 식후 복용', badge:'추천' },
-  '철분':       { icon:'🔴', reason:'빈혈 예방과 에너지 생성에 필수적이에요. 특히 여성에게 중요해요.', dosage:'권장 10~18mg/일 · 공복 또는 비타민C와 함께', badge:'여성 필수' },
-  '코엔자임Q10':{ icon:'💛', reason:'세포 에너지(ATP) 생성을 돕고 강력한 항산화 효과가 있어요.', dosage:'권장 100~200mg/일 · 식후 복용', badge:'추천' },
-  '루테인':     { icon:'👁️', reason:'스마트폰·모니터 블루라이트로부터 눈 황반을 보호해요.', dosage:'권장 10~20mg/일 · 지방식과 함께', badge:'눈 건강' },
-  '글루코사민': { icon:'🦵', reason:'관절 연골을 보호하고 관절염 통증 완화에 도움을 줄 수 있어요.', dosage:'권장 1500mg/일 · 식후 복용', badge:'관절 추천' },
-  '유산균':     { icon:'🦠', reason:'장 건강 개선과 면역력의 70%를 담당하는 장내 환경을 개선해요.', dosage:'권장 100억 CFU/일 · 공복 또는 식전', badge:'장 건강' },
+  '비타민D': {
+    icon:'☀️', badge:'거의 필수',
+    reason:'뼈 건강, 면역력, 기분 개선에 필수예요. 한국인의 90% 이상이 부족합니다.',
+    dosage:'권장 800~2000IU/일',
+    timing:[
+      { when:'🌅 아침~점심 식후', why:'지방과 함께 먹어야 흡수율이 2배↑. 저녁 복용 시 수면 방해 가능성 있어요.' }
+    ],
+    avoid:[
+      { item:'칼슘제', reason:'동시에 다량 복용하면 고칼슘혈증 위험. 2~3시간 간격 권장' },
+      { item:'이뇨제(thiazide계)', reason:'혈중 칼슘 수치를 과도하게 높일 수 있어요' },
+    ]
+  },
+  '오메가3': {
+    icon:'🐟', badge:'적극 추천',
+    reason:'혈행 개선과 뇌 기능, 염증 감소에 도움이 돼요. EPA+DHA 합계 500mg 이상 권장해요.',
+    dosage:'권장 1000~2000mg/일',
+    timing:[
+      { when:'🍽️ 식사 중 또는 식후', why:'지방 함유 식사와 함께 복용하면 흡수율이 높아져요.' }
+    ],
+    avoid:[
+      { item:'와파린·아스피린(항응고제)', reason:'혈소판 응집 억제 효과가 겹쳐 출혈 위험 증가. 반드시 의사 상담' },
+      { item:'혈압약', reason:'혈압 강하 효과가 강해질 수 있어요. 복용량 조절 필요' },
+      { item:'은행잎 추출물', reason:'혈전 예방 효과 중복 — 출혈 경향 증가' },
+    ]
+  },
+  '마그네슘': {
+    icon:'🪨', badge:'강력 추천',
+    reason:'스트레스 완화, 수면의 질 향상, 근육 이완에 효과적이에요. 현대인에게 가장 부족한 미네랄이에요.',
+    dosage:'권장 200~400mg/일',
+    timing:[
+      { when:'🌙 취침 30분~1시간 전', why:'근육 이완과 수면 유도 효과를 극대화할 수 있어요.' },
+      { when:'💊 위장이 민감하다면 식후', why:'공복 복용 시 설사가 생길 수 있어요.' }
+    ],
+    avoid:[
+      { item:'칼슘제', reason:'동시 복용 시 흡수율이 서로 떨어져요. 2시간 이상 간격 권장' },
+      { item:'항생제(퀴놀론·테트라사이클린)', reason:'마그네슘이 항생제 흡수를 방해해요. 2시간 이상 간격 필수' },
+      { item:'레보티록신(갑상선약)', reason:'흡수 방해. 갑상선약 복용 4시간 후 섭취' },
+    ]
+  },
+  '비타민C': {
+    icon:'🍊', badge:'추천',
+    reason:'강력한 항산화 효과와 면역력 증진, 콜라겐 합성에 필수적이에요.',
+    dosage:'권장 500~1000mg/일',
+    timing:[
+      { when:'🍽️ 식후 또는 식사 중', why:'공복 복용 시 위산 자극으로 속이 쓰릴 수 있어요.' },
+      { when:'💊 철분제와 함께 복용하면 효과적', why:'비타민C가 철분의 흡수율을 2~3배 높여줘요.' }
+    ],
+    avoid:[
+      { item:'와파린', reason:'고용량(1g↑) 비타민C는 항응고 효과를 변동시킬 수 있어요' },
+      { item:'알루미늄 함유 제산제', reason:'비타민C가 알루미늄 흡수를 높여 독성 위험' },
+      { item:'신장결석 위험자', reason:'고용량 장기복용 시 옥살산칼슘 결석 위험 증가' },
+    ]
+  },
+  '비타민B군': {
+    icon:'⚡', badge:'강력 추천',
+    reason:'에너지 대사의 핵심! 피로 회복과 신경계 기능에 직접적으로 관여해요.',
+    dosage:'권장 B-Complex 1정/일',
+    timing:[
+      { when:'🌅 아침 식후', why:'에너지 대사를 활성화해 하루를 활기차게 시작할 수 있어요. 저녁 복용 시 수면 방해 가능' }
+    ],
+    avoid:[
+      { item:'메트포르민(당뇨약)', reason:'장기 복용 시 비타민B12 흡수를 방해 — B12 별도 보충 권장' },
+      { item:'알코올', reason:'알코올이 B군 비타민(특히 B1·B12·엽산) 흡수와 대사를 크게 방해해요' },
+      { item:'항생제(일부)', reason:'장내 균총 파괴로 B군 합성 감소. 복용 2시간 간격 권장' },
+    ]
+  },
+  '칼슘': {
+    icon:'🦴', badge:'추천',
+    reason:'뼈와 치아를 만드는 핵심 미네랄이에요. 비타민D와 함께 복용하면 흡수율이 높아져요.',
+    dosage:'권장 500~1000mg/일 (1회 500mg 이하 분할)',
+    timing:[
+      { when:'🍽️ 식사 중 또는 식후', why:'위산이 분비될 때 흡수율이 높아져요.' },
+      { when:'⏰ 1회 500mg 이하 분할 복용', why:'한 번에 500mg 이상은 흡수율이 급격히 떨어져요.' }
+    ],
+    avoid:[
+      { item:'철분제', reason:'칼슘이 철분 흡수를 크게 방해해요. 2시간 이상 간격 필수' },
+      { item:'레보티록신(갑상선약)', reason:'갑상선 호르몬 흡수 방해. 4시간 이상 간격 필수' },
+      { item:'마그네슘', reason:'동시 복용 시 서로 흡수 경쟁. 시간차 복용 권장' },
+      { item:'테트라사이클린·퀴놀론(항생제)', reason:'칼슘이 항생제 흡수를 50% 이상 방해' },
+    ]
+  },
+  '아연': {
+    icon:'🔬', badge:'추천',
+    reason:'면역세포 생성과 피부 재생, 상처 치유에 중요한 역할을 해요.',
+    dosage:'권장 10~15mg/일',
+    timing:[
+      { when:'🍽️ 식후 복용', why:'공복 복용 시 구역감이 생길 수 있어요.' }
+    ],
+    avoid:[
+      { item:'철분제', reason:'아연과 철분은 같은 통로로 흡수 — 서로 방해해요. 2시간 간격 권장' },
+      { item:'칼슘제', reason:'흡수 경쟁. 시간차 복용 권장' },
+      { item:'항생제(퀴놀론·테트라사이클린)', reason:'아연이 항생제 흡수를 방해. 2시간 이상 간격 필수' },
+    ]
+  },
+  '철분': {
+    icon:'🔴', badge:'여성 필수',
+    reason:'빈혈 예방과 에너지 생성에 필수적이에요. 특히 여성에게 중요해요.',
+    dosage:'권장 10~18mg/일',
+    timing:[
+      { when:'☀️ 공복(아침 기상 직후) 또는 비타민C와 함께', why:'비타민C와 함께 복용하면 흡수율이 2~3배 올라가요.' },
+      { when:'⚠️ 위장 불편 시 식후 복용 가능', why:'흡수율은 약간 감소하지만 위장 부담이 줄어요.' }
+    ],
+    avoid:[
+      { item:'칼슘제·마그네슘', reason:'미네랄 흡수 경쟁으로 철분 흡수를 50% 이상 감소시켜요' },
+      { item:'커피·녹차·홍차', reason:'탄닌이 철분 흡수를 방해해요. 철분 복용 2시간 후 음료 섭취' },
+      { item:'레보티록신(갑상선약)', reason:'철분이 갑상선 호르몬 흡수를 방해. 4시간 이상 간격 필수' },
+      { item:'제산제·위산억제제', reason:'위산을 중화시켜 철분 흡수율을 크게 낮춰요' },
+    ]
+  },
+  '코엔자임Q10': {
+    icon:'💛', badge:'추천',
+    reason:'세포 에너지(ATP) 생성을 돕고 강력한 항산화 효과가 있어요.',
+    dosage:'권장 100~200mg/일',
+    timing:[
+      { when:'🍽️ 지방 함유 식사와 함께', why:'지용성이라 기름진 식사와 함께 복용해야 흡수가 잘 돼요.' }
+    ],
+    avoid:[
+      { item:'와파린', reason:'항응고 효과를 약화시킬 수 있어요. INR 모니터링 필요' },
+      { item:'스타틴(콜레스테롤약)', reason:'스타틴이 CoQ10 합성을 억제 — 오히려 보충이 필요해요(병용 가능)' },
+    ]
+  },
+  '루테인': {
+    icon:'👁️', badge:'눈 건강',
+    reason:'스마트폰·모니터 블루라이트로부터 눈 황반을 보호해요.',
+    dosage:'권장 10~20mg/일',
+    timing:[
+      { when:'🍽️ 지방 함유 식사와 함께', why:'지용성 성분으로 기름진 음식과 함께 먹어야 흡수가 잘 돼요.' }
+    ],
+    avoid:[
+      { item:'베타카로틴(고용량)', reason:'흡수 경쟁 — 같이 먹으면 루테인 흡수율이 낮아져요' },
+      { item:'흡연', reason:'흡연자가 베타카로틴 고용량 복용 시 폐암 위험 증가 사례 있음(루테인은 괜찮음)' },
+    ]
+  },
+  '글루코사민': {
+    icon:'🦵', badge:'관절 추천',
+    reason:'관절 연골을 보호하고 관절염 통증 완화에 도움을 줄 수 있어요.',
+    dosage:'권장 1500mg/일 (효과 발현까지 4~8주 필요)',
+    timing:[
+      { when:'🍽️ 식사와 함께 분할 복용', why:'1500mg을 한 번에 먹기보다 식사마다 나눠 먹으면 위장 부담이 줄어요.' }
+    ],
+    avoid:[
+      { item:'와파린', reason:'혈당·항응고 효과에 영향을 줄 수 있어요. INR 모니터링 권장' },
+      { item:'당뇨약', reason:'글루코사민이 혈당을 소폭 올릴 수 있어요. 당뇨 환자는 의사 상담 필수' },
+      { item:'갑각류 알레르기', reason:'글루코사민은 새우·게 껍질 유래 — 알레르기 환자 주의' },
+    ]
+  },
+  '유산균': {
+    icon:'🦠', badge:'장 건강',
+    reason:'장 건강 개선과 면역력의 70%를 담당하는 장내 환경을 개선해요.',
+    dosage:'권장 100억 CFU 이상/일',
+    timing:[
+      { when:'🌅 공복(아침 기상 직후) 또는 식전 30분', why:'위산이 적은 공복에 먹어야 균이 살아서 장까지 도달해요.' },
+      { when:'🌙 취침 전도 효과적', why:'장 연동 운동이 적은 밤에 균이 정착하기 좋아요.' }
+    ],
+    avoid:[
+      { item:'항생제', reason:'항생제가 유산균을 죽여요. 항생제 복용 후 2~3시간 뒤 섭취 또는 항생제 치료 후 보충' },
+      { item:'뜨거운 음료(50°C↑)', reason:'고온이 균을 사멸시켜요. 미지근한 물과 함께 복용' },
+    ]
+  },
 };
 
 function getReco(answers) {
@@ -813,8 +960,20 @@ function renderQuizResult() {
       <div class="quiz-result-hero__title">${genderLabel} ${ageLabel}에게<br>딱 맞는 조합이에요</div>
       <div class="quiz-result-hero__sub">식약처 데이터 기반으로 분석한<br>맞춤 영양제 ${recs.length}가지예요</div>
     </div>
-    ${recs.map((name, i) => {
+    ${recs.map((name) => {
       const r = RECO_DB[name];
+      const timingHtml = r.timing.map(t =>
+        `<div class="quiz-rec-timing-item">
+          <span class="quiz-rec-timing-when">${t.when}</span>
+          <span class="quiz-rec-timing-why">${t.why}</span>
+        </div>`
+      ).join('');
+      const avoidHtml = r.avoid.map(a =>
+        `<div class="quiz-rec-avoid-item">
+          <span class="quiz-rec-avoid-name">⚠️ ${a.item}</span>
+          <span class="quiz-rec-avoid-reason">${a.reason}</span>
+        </div>`
+      ).join('');
       return `<div class="quiz-rec-card">
         <div class="quiz-rec-top">
           <span class="quiz-rec-icon">${r.icon}</span>
@@ -822,6 +981,10 @@ function renderQuizResult() {
           <span class="quiz-rec-badge">${r.badge}</span>
         </div>
         <div class="quiz-rec-reason">${r.reason}</div>
+        <div class="quiz-rec-section-label">⏰ 언제 먹으면 좋을까요?</div>
+        <div class="quiz-rec-timing">${timingHtml}</div>
+        <div class="quiz-rec-section-label" style="color:#F04452">🚫 같이 먹으면 안 되는 것</div>
+        <div class="quiz-rec-avoid">${avoidHtml}</div>
         <div class="quiz-rec-dosage">💡 ${r.dosage}</div>
       </div>`;
     }).join('')}
