@@ -1201,45 +1201,70 @@ footer {
         </div>
       </div>
 
-      <!-- Tab B: 영양 분석 (인라인) -->
+      <!-- Tab B: 영양 분석 -->
       <div id="tabPanelNutrition" style="display:none">
-        <!-- 나이/성별 -->
-        <div style="display:flex;gap:10px;margin-bottom:16px">
-          <input class="nutr-input" type="number" id="mainNutrAge" placeholder="나이 (예: 35)" min="1" max="100" style="flex:1">
-          <select class="nutr-select" id="mainNutrGender" style="flex:1">
-            <option value="female">여성</option>
-            <option value="male">남성</option>
-          </select>
+
+        <!-- 기본 정보 행 -->
+        <div class="nn-info-row">
+          <div class="nn-info-field">
+            <label class="nn-label">나이</label>
+            <input class="nn-input-sm" type="number" id="mainNutrAge" placeholder="35" min="1" max="100">
+          </div>
+          <div class="nn-info-field">
+            <label class="nn-label">성별</label>
+            <select class="nn-select-sm" id="mainNutrGender">
+              <option value="female">여성</option>
+              <option value="male">남성</option>
+            </select>
+          </div>
+          <div class="nn-info-field" style="flex:2">
+            <label class="nn-label">영양제 이름</label>
+            <input class="nn-input-sm" type="text" id="mainNutrProduct" placeholder="예: 센트룸 실버">
+          </div>
         </div>
-        <!-- 제품명 입력 (약통 추가용) -->
-        <input class="nutr-input" type="text" id="mainNutrProduct" placeholder="영양제 이름 (예: 센트룸 실버)" style="width:100%;margin-bottom:16px">
-        <!-- 사진 업로드 -->
-        <div class="photo-upload-area" id="mainPhotoArea" style="margin-bottom:16px">
-          <input type="file" accept="image/*" capture="environment" id="mainNutrImage" onchange="handleMainNutrImage(this)">
-          <div class="photo-upload-area__icon" style="font-size:36px">📷</div>
-          <div class="photo-upload-area__title" style="font-size:15px">영양성분표 촬영 또는 업로드</div>
-          <div class="photo-upload-area__sub">찍으면 자동으로 영양소를 읽어드려요</div>
+
+        <!-- 카메라 업로드 -->
+        <label class="nn-camera-btn" for="mainNutrImage">
+          <input type="file" accept="image/*" capture="environment" id="mainNutrImage" onchange="handleMainNutrImage(this)" style="display:none">
+          <div class="nn-camera-icon">📷</div>
+          <div class="nn-camera-title">영양성분표 촬영</div>
+          <div class="nn-camera-sub">탭하면 카메라가 열려요</div>
+        </label>
+
+        <!-- 미리보기 썸네일 -->
+        <div id="mainNutrThumb" style="display:none" class="nn-thumb-wrap">
+          <img id="mainNutrPreview" class="nn-thumb-img" alt="">
+          <div class="ocr-loading" id="mainOcrLoading" style="display:none">
+            <div class="ocr-spinner"></div>영양성분표 분석 중...
+          </div>
         </div>
-        <img id="mainNutrPreview" class="photo-preview" alt="미리보기">
-        <div class="ocr-loading" id="mainOcrLoading">
-          <div class="ocr-spinner"></div>영양성분표를 읽는 중이에요...
-        </div>
-        <!-- 영양소 간이 입력 -->
+
+        <!-- 수동 입력 섹션 -->
         <div id="mainNutrInputArea" style="display:none">
-          <p style="font-size:13px;color:#8B95A1;margin-bottom:10px">자동 추출된 값을 확인하고 수정하세요</p>
-          <div id="mainNutrFields" style="display:flex;flex-direction:column;gap:8px"></div>
-          <button class="nutr-analyze-btn" onclick="analyzeMainNutrition()">✨ 내 나이 기준으로 분석하기</button>
+          <div class="nn-section-title">
+            <span>영양소 함량 확인</span>
+            <span class="nn-section-badge">OCR 자동 추출 · 수정 가능</span>
+          </div>
+          <div id="mainNutrFields"></div>
+          <button class="nn-analyze-btn" onclick="analyzeMainNutrition()">
+            <span>내 나이 기준으로 분석하기</span>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.75 9H14.25M14.25 9L10.5 5.25M14.25 9L10.5 12.75" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
-        <!-- 결과 -->
-        <div id="mainNutrResult" style="display:none;margin-top:20px">
-          <div style="font-size:15px;font-weight:700;color:#191F28;margin-bottom:12px" id="mainNutrResultTitle"></div>
+
+        <!-- 뉴니콘 스타일 결과 -->
+        <div id="mainNutrResult" style="display:none">
+          <!-- 요약 헤더 -->
+          <div class="nn-result-header" id="mainNutrResultHeader"></div>
+          <!-- 영양소 카드들 -->
           <div id="mainNutrResultCards"></div>
-          <!-- 약통 추가 버튼 -->
-          <button id="addToCabFromNutr" onclick="addNutrToCabinet()" style="display:none;width:100%;margin-top:16px;padding:14px;background:#EBF3FF;color:#3182F6;border:none;border-radius:14px;font-family:Pretendard,sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s">
+          <!-- 약통 추가 -->
+          <button id="addToCabFromNutr" onclick="addNutrToCabinet()" class="nn-cab-btn" style="display:none">
             💊 내 약통에 추가하기
           </button>
-          <p style="font-size:11px;color:#8B95A1;text-align:center;margin-top:12px;line-height:1.6">한국인 영양소 섭취기준(2020) 기반 · 참고용입니다</p>
+          <p class="nn-disclaimer">한국인 영양소 섭취기준(2020) 기반 · 의학적 진단이 아닌 참고용입니다</p>
         </div>
+
       </div>
 
     </div>
@@ -1467,6 +1492,156 @@ footer {
 </div>
 
 <style>
+/* ── 뉴니콘 스타일 영양 분석 ────────────────────────── */
+.nn-info-row {
+  display: flex; gap: 8px; margin-bottom: 14px; align-items: flex-end;
+}
+.nn-info-field { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.nn-label { font-size: 11px; font-weight: 700; color: #8B95A1; letter-spacing: 0.3px; }
+.nn-input-sm, .nn-select-sm {
+  border: 1.5px solid #E5E8EB; border-radius: 10px;
+  padding: 10px 12px; font-family: 'Pretendard', sans-serif;
+  font-size: 14px; color: #191F28; background: #F9FAFB; outline: none;
+  transition: border-color .15s, background .15s; width: 100%;
+}
+.nn-input-sm:focus, .nn-select-sm:focus { border-color: #3182F6; background: #fff; }
+.nn-select-sm { appearance: none; cursor: pointer; }
+
+/* 카메라 버튼 */
+.nn-camera-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #3182F6 0%, #1B6EE4 100%);
+  border-radius: 20px; padding: 28px 20px; cursor: pointer;
+  margin-bottom: 14px; text-align: center;
+  box-shadow: 0 6px 20px rgba(49,130,246,0.30);
+  transition: transform .18s, box-shadow .18s;
+  position: relative; overflow: hidden;
+}
+.nn-camera-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(49,130,246,0.40); }
+.nn-camera-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 70% 20%, rgba(255,255,255,0.15) 0%, transparent 60%);
+}
+.nn-camera-icon { font-size: 40px; margin-bottom: 8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15)); }
+.nn-camera-title { font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.nn-camera-sub   { font-size: 13px; color: rgba(255,255,255,0.75); }
+
+/* 썸네일 미리보기 */
+.nn-thumb-wrap { position: relative; margin-bottom: 14px; border-radius: 16px; overflow: hidden; }
+.nn-thumb-img  { width: 100%; max-height: 200px; object-fit: cover; display: block; border-radius: 16px; }
+
+/* 수동 입력 */
+.nn-section-title {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.nn-section-title span:first-child { font-size: 14px; font-weight: 700; color: #191F28; }
+.nn-section-badge {
+  font-size: 11px; color: #3182F6; background: #EBF3FF;
+  padding: 3px 8px; border-radius: 999px; font-weight: 600;
+}
+.nn-field-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: #F9FAFB; border-radius: 12px; margin-bottom: 6px;
+}
+.nn-field-icon { font-size: 20px; flex-shrink: 0; }
+.nn-field-name { font-size: 14px; font-weight: 600; color: #191F28; flex: 1; }
+.nn-field-input {
+  width: 76px; border: 1.5px solid #E5E8EB; border-radius: 8px;
+  padding: 7px 10px; font-family: 'Pretendard', sans-serif;
+  font-size: 14px; text-align: right; outline: none; background: #fff;
+  transition: border-color .15s;
+}
+.nn-field-input:focus { border-color: #3182F6; }
+.nn-field-unit { font-size: 12px; color: #8B95A1; min-width: 44px; }
+.nn-analyze-btn {
+  width: 100%; padding: 15px 20px; background: #3182F6; color: #fff;
+  border: none; border-radius: 14px; font-family: 'Pretendard', sans-serif;
+  font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 14px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background .15s, transform .15s;
+  box-shadow: 0 4px 14px rgba(49,130,246,0.30);
+}
+.nn-analyze-btn:hover { background: #1B6EE4; transform: translateY(-1px); }
+
+/* 결과 헤더 */
+.nn-result-header {
+  background: linear-gradient(135deg, #191F28 0%, #333D4B 100%);
+  border-radius: 20px; padding: 20px;
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 16px; color: #fff;
+}
+.nn-result-header__score {
+  width: 60px; height: 60px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 900; flex-shrink: 0;
+}
+.nn-result-header__info { flex: 1; }
+.nn-result-header__product { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+.nn-result-header__sub { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+
+/* 뉴니콘 영양소 카드 */
+.nn-nutr-card {
+  background: #fff; border-radius: 16px; margin-bottom: 10px;
+  padding: 16px; position: relative; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border-left: 4px solid #E5E8EB;
+  transition: transform .15s;
+}
+.nn-nutr-card:hover { transform: translateY(-1px); }
+.nn-nutr-card.ok   { border-left-color: #00B761; }
+.nn-nutr-card.low  { border-left-color: #FF9500; }
+.nn-nutr-card.high { border-left-color: #F04452; }
+.nn-nutr-card__top {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.nn-nutr-card__icon { font-size: 22px; flex-shrink: 0; }
+.nn-nutr-card__name { font-size: 15px; font-weight: 700; color: #191F28; flex: 1; }
+.nn-nutr-card__badge {
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.nn-nutr-card__badge.ok   { background: #E8FAF0; color: #00B761; }
+.nn-nutr-card__badge.low  { background: #FFF4E6; color: #E07300; }
+.nn-nutr-card__badge.high { background: #FFF0F0; color: #F04452; }
+/* 바 */
+.nn-bar-wrap {
+  height: 8px; background: #F2F4F6; border-radius: 99px;
+  overflow: hidden; margin-bottom: 8px;
+}
+.nn-bar {
+  height: 100%; border-radius: 99px;
+  transition: width .8s cubic-bezier(.34,1.2,.64,1);
+}
+.nn-bar.ok   { background: linear-gradient(90deg, #00D170, #00B761); }
+.nn-bar.low  { background: linear-gradient(90deg, #FFB347, #FF9500); }
+.nn-bar.high { background: linear-gradient(90deg, #FF6B7A, #F04452); }
+/* 수치 */
+.nn-nutr-card__vals {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.nn-nutr-card__amount { font-size: 18px; font-weight: 800; color: #191F28; }
+.nn-nutr-card__unit   { font-size: 12px; color: #8B95A1; margin-left: 2px; }
+.nn-nutr-card__rda    { font-size: 12px; color: #8B95A1; text-align: right; }
+.nn-nutr-card__pct    { font-size: 13px; font-weight: 700; }
+.nn-nutr-card__pct.ok   { color: #00B761; }
+.nn-nutr-card__pct.low  { color: #FF9500; }
+.nn-nutr-card__pct.high { color: #F04452; }
+
+/* 약통 추가 버튼 */
+.nn-cab-btn {
+  width: 100%; margin-top: 16px; padding: 14px;
+  background: #EBF3FF; color: #3182F6; border: none;
+  border-radius: 14px; font-family: 'Pretendard', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+.nn-cab-btn:hover { background: #D6E8FF; transform: translateY(-1px); }
+.nn-disclaimer {
+  font-size: 11px; color: #B0B8C1; text-align: center;
+  margin-top: 14px; line-height: 1.7;
+}
+
 /* ── 메인 탭 ────────────────────────────────────────── */
 .main-tabs {
   display: flex; gap: 6px; margin-bottom: 24px;
@@ -1799,7 +1974,6 @@ footer {
   </div>
 </div>
 
-<script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

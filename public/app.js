@@ -1182,34 +1182,67 @@ function renderNutrResult(results, age, genderLabel) {
 // ── 메인 영양 분석 (인라인) ───────────────────────────────
 const MAIN_NUTR_LIST = ['비타민A','비타민C','비타민D','비타민E','비타민B1','비타민B2','비타민B6','비타민B12','엽산','칼슘','마그네슘','철분','아연','오메가3'];
 
+// 영양소별 아이콘
+const NUTR_ICONS = {
+  '비타민A':'🟠','비타민C':'🍊','비타민D':'☀️','비타민E':'🌿',
+  '비타민B1':'⚡','비타민B2':'🔆','비타민B6':'🧬','비타민B12':'💜',
+  '엽산':'🌱','칼슘':'🦴','마그네슘':'🪨','철분':'🔴','아연':'🔬','오메가3':'🐟'
+};
+
 function renderMainNutrFields(extracted = {}) {
   const wrap = document.getElementById('mainNutrFields');
   if (!wrap) return;
-  // 값이 있는 것만 표시, 없으면 주요 6개만
-  const toShow = MAIN_NUTR_LIST.filter(n => extracted[n] || ['비타민C','비타민D','칼슘','마그네슘','철분','오메가3'].includes(n));
+  const toShow = MAIN_NUTR_LIST.filter(n =>
+    extracted[n] || ['비타민C','비타민D','칼슘','마그네슘','철분','오메가3','아연','비타민B군'].includes(n)
+  ).filter(n => NUTR_DRI[n]);
   wrap.innerHTML = toShow.map(name => `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F9FAFB;border-radius:12px">
-      <span style="font-size:14px;font-weight:500;color:#191F28;flex:1">${name}</span>
-      <input type="number" id="mnf-${name}" value="${extracted[name]||''}" placeholder="0" min="0" step="0.1"
-        style="width:80px;border:1.5px solid #E5E8EB;border-radius:8px;padding:6px 10px;font-family:Pretendard,sans-serif;font-size:14px;text-align:right;outline:none">
-      <span style="font-size:12px;color:#8B95A1;min-width:52px">${NUTR_DRI[name]?.unit||''}</span>
+    <div class="nn-field-row">
+      <span class="nn-field-icon">${NUTR_ICONS[name]||'💊'}</span>
+      <span class="nn-field-name">${name}</span>
+      <input type="number" id="mnf-${name}" value="${extracted[name]||''}" placeholder="0"
+        min="0" step="0.1" class="nn-field-input">
+      <span class="nn-field-unit">${NUTR_DRI[name].unit}</span>
     </div>`).join('');
   document.getElementById('mainNutrInputArea').style.display = '';
 }
 
+// OCR.space API로 이미지 분석
 async function handleMainNutrImage(input) {
   const file = input.files[0];
   if (!file) return;
+  // 미리보기
+  const thumb = document.getElementById('mainNutrThumb');
   const preview = document.getElementById('mainNutrPreview');
   preview.src = URL.createObjectURL(file);
-  preview.style.display = 'block';
-  document.getElementById('mainOcrLoading').style.display = 'block';
+  thumb.style.display = '';
+  // OCR
+  const loadingEl = document.getElementById('mainOcrLoading');
+  loadingEl.style.display = 'block';
   document.getElementById('mainNutrInputArea').style.display = 'none';
+  document.getElementById('mainNutrResult').style.display = 'none';
   try {
-    const result = await Tesseract.recognize(file, 'kor+eng', { logger: ()=>{} });
-    renderMainNutrFields(parseNutrText(result.data.text));
-  } catch { renderMainNutrFields({}); }
-  finally { document.getElementById('mainOcrLoading').style.display = 'none'; }
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('language', 'kor');
+    formData.append('isOverlayRequired', 'false');
+    formData.append('OCREngine', '2');
+    formData.append('scale', 'true');
+    const resp = await fetch('https://api.ocr.space/parse/image', {
+      method: 'POST',
+      headers: { 'apikey': 'helloworld' },
+      body: formData
+    });
+    const data = await resp.json();
+    const text = data?.ParsedResults?.[0]?.ParsedText || '';
+    renderMainNutrFields(parseNutrText(text));
+    if (text) toast('📷 영양성분표를 인식했어요! 값을 확인해 주세요.');
+    else { renderMainNutrFields({}); toast('인식이 어려워요. 직접 입력해 주세요.'); }
+  } catch {
+    renderMainNutrFields({});
+    toast('OCR 오류가 발생했어요. 직접 입력해 주세요.');
+  } finally {
+    loadingEl.style.display = 'none';
+  }
 }
 
 function analyzeMainNutrition() {
@@ -1233,23 +1266,68 @@ function analyzeMainNutrition() {
     else if (pct >= 80)  { status='ok';   label='적절'; }
     else if (pct >= 30)  { status='low';  label='부족'; }
     else                 { status='low';  label='많이 부족'; }
-    results.push({ name, val, unit: dri.unit, rda, pct: Math.min(pct,200), status, label });
+    results.push({ name, val, unit: dri.unit, rda, pct: Math.min(pct, 150), status, label });
   });
   if (!results.length) { toast('영양소 값을 하나 이상 입력해 주세요'); return; }
-  const colorMap = { ok:'#00B761', low:'#FF9500', high:'#F04452' };
-  const cards = document.getElementById('mainNutrResultCards');
-  cards.innerHTML = results.map(r => `
-    <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #F2F4F6;gap:10px;background:#fff">
-      <span style="flex-shrink:0;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:${r.status==='ok'?'#E8FAF0':r.status==='high'?'#FFF0F0':'#FFF4E6'};color:${colorMap[r.status]}">${r.label}</span>
-      <span style="font-size:14px;font-weight:600;color:#191F28;flex:1">${r.name}</span>
-      <span style="font-size:12px;color:#8B95A1;text-align:right">${r.val}${r.unit}<br><span style="font-size:11px">권장 ${r.rda}</span></span>
+
+  // 요약 점수 계산
+  const okCount   = results.filter(r => r.status === 'ok').length;
+  const highCount = results.filter(r => r.status === 'high').length;
+  const score = Math.round((okCount / results.length) * 100);
+  const scoreEmoji = score >= 80 ? '🏆' : score >= 60 ? '✅' : score >= 40 ? '⚠️' : '❌';
+  const scoreBg = score >= 80 ? '#00B761' : score >= 60 ? '#3182F6' : score >= 40 ? '#FF9500' : '#F04452';
+  const productName = document.getElementById('mainNutrProduct')?.value.trim() || '영양제';
+  const genderLabel = gender === 'male' ? '남성' : '여성';
+
+  // 요약 헤더
+  document.getElementById('mainNutrResultHeader').innerHTML = `
+    <div class="nn-result-header__score" style="background:${scoreBg}">${scoreEmoji}</div>
+    <div class="nn-result-header__info">
+      <div class="nn-result-header__product">${productName}</div>
+      <div class="nn-result-header__sub">${age}세 ${genderLabel} 기준 · 적절 ${okCount}/${results.length}개${highCount>0?` · 과다 ${highCount}개 주의`:''}</div>
+    </div>`;
+
+  // 영양소 카드 (적절→부족→과다 순 정렬)
+  const sorted = [...results].sort((a,b) => {
+    const order = { ok:0, low:1, high:2 };
+    return order[a.status] - order[b.status];
+  });
+  document.getElementById('mainNutrResultCards').innerHTML = sorted.map(r => `
+    <div class="nn-nutr-card ${r.status}">
+      <div class="nn-nutr-card__top">
+        <span class="nn-nutr-card__icon">${NUTR_ICONS[r.name]||'💊'}</span>
+        <span class="nn-nutr-card__name">${r.name}</span>
+        <span class="nn-nutr-card__badge ${r.status}">${r.label}</span>
+      </div>
+      <div class="nn-bar-wrap">
+        <div class="nn-bar ${r.status}" style="width:0%" data-target="${r.pct}%"></div>
+      </div>
+      <div class="nn-nutr-card__vals">
+        <div>
+          <span class="nn-nutr-card__amount">${r.val}</span>
+          <span class="nn-nutr-card__unit">${r.unit}</span>
+        </div>
+        <div class="nn-nutr-card__rda">
+          권장 ${r.rda}${r.unit}<br>
+          <span class="nn-nutr-card__pct ${r.status}">${r.pct}%</span>
+        </div>
+      </div>
     </div>`).join('');
+
   document.getElementById('mainNutrResult').style.display = '';
-  document.getElementById('mainNutrResultTitle').textContent = `📊 ${age}세 ${gender==='male'?'남성':'여성'} 기준 분석 결과`;
-  // 약통 추가 버튼: 제품명 있을 때만 표시
-  const productName = document.getElementById('mainNutrProduct')?.value.trim();
+
+  // 바 애니메이션 (약간 딜레이)
+  setTimeout(() => {
+    document.querySelectorAll('.nn-bar[data-target]').forEach(bar => {
+      bar.style.width = bar.dataset.target;
+    });
+  }, 100);
+
+  // 약통 추가 버튼
   const addBtn = document.getElementById('addToCabFromNutr');
-  if (addBtn) addBtn.style.display = productName ? '' : 'none';
+  const realProduct = document.getElementById('mainNutrProduct')?.value.trim();
+  if (addBtn) addBtn.style.display = realProduct ? '' : 'none';
+
   document.getElementById('mainNutrResult').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
