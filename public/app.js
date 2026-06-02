@@ -78,15 +78,17 @@ async function onSearch(input, idx) {
   if (!res || !res.ok) return;
   const items = await res.json();
 
+  // 직접 추가 옵션 (항상 맨 아래 표시)
+  const customOption = `<div class="ac-item ac-item--custom" onmousedown="selectDrug(${idx},'custom-${Date.now()}','${q.replace(/'/g,"\\'")}','supplement')">
+    <span style="font-size:16px">✏️</span>
+    <span><strong>'${q}'</strong> 직접 추가하기</span>
+    <span class="ac-cat" style="background:#F2F4F6;color:#8B95A1">직접입력</span>
+  </div>`;
+
   if (!items.length) {
-    ac.innerHTML = `<div style="padding:16px 16px;text-align:center">
-      <div style="font-size:22px;margin-bottom:6px">🔍</div>
-      <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:4px">'${q}' 검색 결과가 없어요</div>
-      <div style="font-size:12px;color:var(--text-tertiary);line-height:1.6">
-        약 이름 또는 성분명으로 다시 검색해 보세요<br>
-        예: 타이레놀, 아세트아미노펜, 오메가3
-      </div>
-    </div>`;
+    ac.innerHTML = `<div style="padding:14px 16px;text-align:center;border-bottom:1px solid #F2F4F6">
+      <div style="font-size:13px;color:var(--text-tertiary)">DB에 없는 제품이에요. 직접 추가할 수 있어요.</div>
+    </div>${customOption}`;
     ac.style.display = 'block';
     return;
   }
@@ -96,7 +98,7 @@ async function onSearch(input, idx) {
       <span style="font-size:12px;color:var(--muted)">${d.ingredient||''}</span>
       <span class="ac-cat">${d.category === 'drug' ? '의약품' : '건기식'}</span>
     </div>`
-  ).join('');
+  ).join('') + customOption;
   ac.style.display = 'block';
 }
 
@@ -164,15 +166,39 @@ async function checkInteraction() {
   const selected = slots.filter(Boolean);
   if (selected.length < 2) { toast('약을 2개 이상 선택해야 천재가 분석할 수 있어요'); return; }
 
+  // 직접 입력 항목 체크
+  const customItems = selected.filter(s => s.seq.startsWith('custom-'));
+  const dbItems = selected.filter(s => !s.seq.startsWith('custom-'));
+
   document.getElementById('resultSection').style.display = 'block';
   document.getElementById('resultCard').innerHTML = '';
   document.getElementById('checkLoading').style.display = 'block';
   document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+  // DB 항목이 2개 미만이면 상호작용 조회 불가 → 안내만 표시
+  if (dbItems.length < 2) {
+    document.getElementById('checkLoading').style.display = 'none';
+    const names = selected.map(s => `<strong>${s.name}</strong>`).join(' + ');
+    document.getElementById('resultCard').innerHTML = `
+      <div style="padding:24px;text-align:center">
+        <div style="font-size:36px;margin-bottom:12px">🔍</div>
+        <div style="font-size:16px;font-weight:700;color:#191F28;margin-bottom:8px">${names}</div>
+        <div style="font-size:14px;color:#8B95A1;line-height:1.7;margin-bottom:16px">
+          직접 입력한 제품은 식약처 상호작용 DB에 등록되지 않아<br>
+          자동 분석이 어려워요.<br><br>
+          <strong style="color:#3182F6">📌 이렇게 해보세요</strong><br>
+          검색창에서 성분명으로 검색해 보세요.<br>
+          예) <em>비타민D 1000IU</em> → <em>비타민D</em> 또는 <em>콜레칼시페롤</em>
+        </div>
+        ${customItems.map(c => `<div style="background:#EBF3FF;border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:13px;color:#3182F6;font-weight:600">💡 '${c.name}' — 성분명으로 다시 검색해 보세요</div>`).join('')}
+      </div>`;
+    return;
+  }
+
   const res = await fetch(`${API}/api/interactions/check`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ drug_seqs: selected.map(s => s.seq) })
+    body: JSON.stringify({ drug_seqs: selected.map(s => s.seq), custom_items: customItems.map(s => s.name) })
   }).catch(() => null);
 
   document.getElementById('checkLoading').style.display = 'none';
