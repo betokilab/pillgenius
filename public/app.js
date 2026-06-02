@@ -729,13 +729,16 @@ const QUIZ_STEPS = [
     id: 'gender',
     label: 'STEP 1 / 4',
     q: '성별과 연령대를\n알려주세요',
-    sub: '나이에 따라 필요한 영양소가 달라져요',
+    sub: '나이에 따라 꼭 필요한 영양소가 달라져요',
     type: 'single',
     options: [
-      { icon:'👩', title:'여성 20-30대', desc:'호르몬·피부·철분 케어 중요', value:'f_young' },
-      { icon:'👨', title:'남성 20-30대', desc:'근육·에너지·스트레스 케어 중요', value:'m_young' },
-      { icon:'👩‍🦳', title:'여성 40-60대', desc:'갱년기·뼈·혈관 케어 중요', value:'f_mid' },
-      { icon:'👨‍🦳', title:'남성 40-60대', desc:'전립선·심혈관·뼈 케어 중요', value:'m_mid' },
+      { icon:'👧', title:'여성 10-20대', desc:'성장·호르몬·철분·피부 케어 시작기', value:'f_teen' },
+      { icon:'👦', title:'남성 10-20대', desc:'성장·근육·에너지·집중력 케어 시작기', value:'m_teen' },
+      { icon:'👩', title:'여성 30-40대', desc:'항산화·피부·철분·임신 준비 케어 중요', value:'f_young' },
+      { icon:'👨', title:'남성 30-40대', desc:'에너지·스트레스·혈관·근육 케어 중요', value:'m_young' },
+      { icon:'👩‍🦳', title:'여성 50-60대', desc:'갱년기·뼈·혈관·콜레스테롤 케어 중요', value:'f_mid' },
+      { icon:'👨‍🦳', title:'남성 50-60대', desc:'전립선·심혈관·뼈·근력 유지 중요', value:'m_mid' },
+      { icon:'👴', title:'70대 이상', desc:'뇌·뼈·심혈관·낙상 예방·소화 케어 중요', value:'senior' },
     ]
   },
   {
@@ -954,12 +957,16 @@ function getReco(answers) {
   const recs = new Set();
   const { gender, goal, symptoms, current } = answers;
 
-  // 거의 모든 사람 필수
-  recs.add('비타민D');
+  recs.add('비타민D'); // 전 연령 공통
 
-  // 성별/연령 기반
-  if (gender?.includes('f')) recs.add('철분');
-  if (gender?.includes('mid')) { recs.add('코엔자임Q10'); recs.add('루테인'); }
+  // 연령대별 특화
+  if (gender === 'f_teen') { recs.add('칼슘'); recs.add('철분'); recs.add('비타민C'); }
+  if (gender === 'm_teen') { recs.add('칼슘'); recs.add('아연'); recs.add('비타민B군'); }
+  if (gender === 'f_young') { recs.add('철분'); recs.add('엽산'); recs.add('비타민C'); }
+  if (gender === 'm_young') { recs.add('비타민B군'); recs.add('마그네슘'); recs.add('오메가3'); }
+  if (gender === 'f_mid')  { recs.add('칼슘'); recs.add('마그네슘'); recs.add('오메가3'); recs.add('코엔자임Q10'); }
+  if (gender === 'm_mid')  { recs.add('오메가3'); recs.add('코엔자임Q10'); recs.add('루테인'); }
+  if (gender === 'senior') { recs.add('칼슘'); recs.add('오메가3'); recs.add('비타민B12'); recs.add('유산균'); recs.add('루테인'); }
 
   // 목표 기반
   if (goal === 'energy')  { recs.add('비타민B군'); recs.add('마그네슘'); recs.add('코엔자임Q10'); }
@@ -968,14 +975,14 @@ function getReco(answers) {
   if (goal === 'skin')    { recs.add('비타민C'); recs.add('아연'); recs.add('오메가3'); }
 
   // 증상 기반
-  if (symptoms?.includes('fatigue')) { recs.add('비타민B군'); recs.add('마그네슘'); }
-  if (symptoms?.includes('focus'))   { recs.add('오메가3'); recs.add('비타민B군'); }
-  if (symptoms?.includes('bone_weak')){ recs.add('칼슘'); recs.add('비타민D'); }
-  if (symptoms?.includes('sleep'))    recs.add('마그네슘');
-  if (symptoms?.includes('immunity')) { recs.add('비타민C'); recs.add('아연'); }
-  if (symptoms?.includes('cardiovascular')) recs.add('오메가3');
-  if (symptoms?.includes('muscle'))   { recs.add('마그네슘'); recs.add('비타민D'); }
-  if (symptoms?.includes('skin_issue')){ recs.add('비타민C'); recs.add('아연'); }
+  if (symptoms?.includes('fatigue'))        { recs.add('비타민B군'); recs.add('마그네슘'); }
+  if (symptoms?.includes('focus'))          { recs.add('오메가3'); recs.add('비타민B군'); }
+  if (symptoms?.includes('bone_weak'))      { recs.add('칼슘'); recs.add('비타민D'); }
+  if (symptoms?.includes('sleep'))          { recs.add('마그네슘'); }
+  if (symptoms?.includes('immunity'))       { recs.add('비타민C'); recs.add('아연'); }
+  if (symptoms?.includes('cardiovascular')) { recs.add('오메가3'); }
+  if (symptoms?.includes('muscle'))         { recs.add('마그네슘'); recs.add('비타민D'); }
+  if (symptoms?.includes('skin_issue'))     { recs.add('비타민C'); recs.add('아연'); }
 
   // 이미 복용 중인 것 제외
   const skip = {
@@ -987,7 +994,6 @@ function getReco(answers) {
     current.forEach(k => { (skip[k]||[]).forEach(n => recs.delete(n)); });
   }
 
-  // 최대 5개
   return [...recs].slice(0, 5).filter(r => RECO_DB[r]);
 }
 
@@ -1062,13 +1068,19 @@ function quizNext() {
 function renderQuizResult() {
   document.getElementById('quizProgressBar').style.width = '100%';
   const recs = getReco(quizAnswers);
-  const genderLabel = quizAnswers.gender?.includes('f') ? '여성' : '남성';
-  const ageLabel = quizAnswers.gender?.includes('young') ? '20-30대' : '40-60대';
+  const GENDER_LABEL = {
+    f_teen:'여성 10-20대', m_teen:'남성 10-20대',
+    f_young:'여성 30-40대', m_young:'남성 30-40대',
+    f_mid:'여성 50-60대', m_mid:'남성 50-60대',
+    senior:'70대 이상'
+  };
+  const genderLabel = GENDER_LABEL[quizAnswers.gender] || '맞춤';
+  const ageLabel = '';
 
   document.getElementById('quizBody').innerHTML = `
     <div class="quiz-result-hero">
       <div class="quiz-result-hero__emoji">🎯</div>
-      <div class="quiz-result-hero__title">${genderLabel} ${ageLabel}에게<br>딱 맞는 조합이에요</div>
+      <div class="quiz-result-hero__title">${genderLabel}에게<br>딱 맞는 조합이에요</div>
       <div class="quiz-result-hero__sub">식약처 데이터 기반으로 분석한<br>맞춤 영양제 ${recs.length}가지예요</div>
     </div>
     ${recs.map((name) => {
