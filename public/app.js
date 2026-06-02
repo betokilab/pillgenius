@@ -19,8 +19,19 @@ function renderDrugTags() {
   // 태그 렌더
   let html = selectedSlots.map((s, i) => {
     const realIdx = slots.indexOf(s);
-    return `<span class="drug-tag">💊 ${s.name}<button class="drug-tag__remove" onclick="clearSlotNew(${realIdx})">✕</button></span>`;
+    const isCustomMapped = s.customNotice?.startsWith('✅');
+    const isCustomFailed = s.customNotice?.startsWith('⚠️');
+    return `<span class="drug-tag${isCustomFailed ? ' drug-tag--warn' : ''}">
+      ${isCustomMapped ? '🔗' : '💊'} ${s.name}
+      <button class="drug-tag__remove" onclick="clearSlotNew(${realIdx})">✕</button>
+    </span>`;
   }).join('');
+
+  // 인식 알림 표시
+  const notices = selectedSlots.filter(s => s.customNotice).map(s =>
+    `<div class="custom-notice ${s.customNotice.startsWith('✅') ? 'custom-notice--ok' : 'custom-notice--warn'}">${s.customNotice}</div>`
+  ).join('');
+  if (notices) html = notices + html;
 
   // 2개 미만이면 "+ 두 번째 약 추가하기" 버튼 표시
   if (selectedSlots.length > 0 && selectedSlots.length < 3) {
@@ -102,8 +113,82 @@ async function onSearch(input, idx) {
   ac.style.display = 'block';
 }
 
+// ── 제품명 → DB 시퀀스 매핑 테이블 ──────────────────────
+const INGREDIENT_MAP = {
+  // 비타민 계열
+  '비타민a': 'S016', '레티놀': 'S016', '비타민 a': 'S016',
+  '비타민c': 'S008', '아스코르브산': 'S008', '비타민 c': 'S008', '비타민씨': 'S008',
+  '비타민d': 'S002', '비타민d3': 'S002', '콜레칼시페롤': 'S002', '비타민 d': 'S002', '비타민디': 'S002',
+  '비타민e': 'S017', '토코페롤': 'S017', '비타민 e': 'S017',
+  '비타민k': 'S018', '비타민k2': 'S018', '메나퀴논': 'S018',
+  '비타민b': 'S012', '비타민b군': 'S012', '비타민b복합': 'S012', 'b컴플렉스': 'S012',
+  '비타민b12': 'S022', '코발라민': 'S022', '시아노코발라민': 'S022',
+  '엽산': 'S023', '폴산': 'S023', '폴릭애씨드': 'S023',
+  '종합비타민': 'S019', '멀티비타민': 'S019', '센트룸': 'S019', '얼라이브': 'S019',
+  // 미네랄
+  '오메가3': 'S001', 'epa': 'S001', 'dha': 'S001', '피쉬오일': 'S001', '생선오일': 'S001', '어유': 'S001',
+  '마그네슘': 'S003', '산화마그네슘': 'S003',
+  '칼슘': 'S013', '탄산칼슘': 'S013', '칼슘제': 'S013',
+  '철분': 'S007', '철': 'S007', '황산철': 'S007', '철분제': 'S007', '아이언': 'S007',
+  '아연': 'S011', '징크': 'S011',
+  '코엔자임q10': 'S004', 'coq10': 'S004', '코큐텐': 'S004', '유비퀴논': 'S004',
+  '루테인': 'S009', '지아잔틴': 'S009',
+  '유산균': 'S010', '프로바이오틱스': 'S010', '락토바실러스': 'S010', '락토핏': 'S010',
+  '홍삼': 'S005', '인삼': 'S005', '진생': 'S005',
+  '은행잎': 'S006', '징코': 'S006', '진코': 'S006',
+  '글루코사민': 'S014', '콘드로이틴': 'S014',
+  '밀크씨슬': 'S015', '실리마린': 'S015',
+  // 의약품
+  '타이레놀': 'D001', '아세트아미노펜': 'D001', '아세타미노펜': 'D001',
+  '이부프로펜': 'D002', '부루펜': 'D002', '애드빌': 'D002',
+  '아스피린': 'D003', '아세틸살리실산': 'D003',
+  '와파린': 'D004', '쿠마딘': 'D004',
+  '메트포르민': 'D005', '글루코파지': 'D005',
+  '암로디핀': 'D006', '노바스크': 'D006',
+  '로수바스타틴': 'D007', '크레스토': 'D007',
+  '오메프라졸': 'D008', '로섹': 'D008',
+  '세티리진': 'D010', '지르텍': 'D010',
+  '레보티록신': 'D011', '씬지로이드': 'D011',
+  '클로피도그렐': 'D013', '플라빅스': 'D013',
+};
+
+// 제품명에서 DB seq 추출 (정규화 후 매핑)
+function resolveCustomProduct(name) {
+  const normalized = name.toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[0-9,]+\s*(mg|iu|mcg|g|ml|억|천만|만|cfu|%)/gi, '') // 용량 제거
+    .replace(/\(.*?\)/g, '') // 괄호 제거
+    .replace(/[·•_\-]/g, '') // 특수문자 제거
+    .trim();
+
+  // 정확히 일치하는 것 먼저
+  if (INGREDIENT_MAP[normalized]) {
+    return { seq: INGREDIENT_MAP[normalized], matched: true };
+  }
+  // 포함 관계로 찾기
+  for (const [key, seq] of Object.entries(INGREDIENT_MAP)) {
+    if (normalized.includes(key) || key.includes(normalized)) {
+      return { seq, matched: true };
+    }
+  }
+  return { seq: null, matched: false };
+}
+
 function selectDrug(idx, seq, name, category) {
-  slots[idx] = { seq, name, category };
+  // 직접 입력 항목이면 성분 매핑 시도
+  let resolvedSeq = seq;
+  let resolvedName = name;
+  let customNotice = null;
+  if (seq.startsWith('custom-')) {
+    const resolved = resolveCustomProduct(name);
+    if (resolved.matched) {
+      resolvedSeq = resolved.seq;
+      customNotice = `✅ '${name}'을 성분으로 인식했어요`;
+    } else {
+      customNotice = `⚠️ '${name}' 성분을 찾지 못했어요. 성분명으로 검색해 보세요`;
+    }
+  }
+  slots[idx] = { seq: resolvedSeq, name, category, customNotice };
   // 기존 호환
   const drugSlotsEl = document.getElementById('drugSlots');
   if (drugSlotsEl) {
@@ -166,9 +251,9 @@ async function checkInteraction() {
   const selected = slots.filter(Boolean);
   if (selected.length < 2) { toast('약을 2개 이상 선택해야 천재가 분석할 수 있어요'); return; }
 
-  // 직접 입력 항목 체크
-  const customItems = selected.filter(s => s.seq.startsWith('custom-'));
-  const dbItems = selected.filter(s => !s.seq.startsWith('custom-'));
+  // 직접 입력 항목 체크 (매핑 실패한 것만 custom으로 처리)
+  const customItems = selected.filter(s => s.seq?.startsWith('custom-'));
+  const dbItems = selected.filter(s => !s.seq?.startsWith('custom-'));
 
   document.getElementById('resultSection').style.display = 'block';
   document.getElementById('resultCard').innerHTML = '';
