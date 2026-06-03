@@ -54,7 +54,7 @@ async function sendAIMessage() {
   const sendBtn = document.getElementById('aiChatSend');
   sendBtn.disabled = true;
   const loadingId = 'loading-' + Date.now();
-  appendMsg('bot', '...', loadingId, true);
+  appendAIMsg('bot', '...', loadingId, true);
 
   try {
     const res = await fetch('/api/ai-chat', {
@@ -68,7 +68,7 @@ async function sendAIMessage() {
     document.getElementById(loadingId)?.remove();
 
     const reply = data.reply || '답변을 받지 못했습니다.';
-    appendMsg('bot', reply);
+    appendAIMsg('bot', reply);
 
     // 히스토리 기록
     aiHistory.push({ role: 'user', content: msg });
@@ -84,21 +84,21 @@ async function sendAIMessage() {
       // 마지막 무료 사용이면 안내 메시지
       if (aiTrialUsed === AI_FREE_LIMIT) {
         setTimeout(() => {
-          appendMsg('bot', '💡 무료 상담 3회를 모두 사용했어요. 회원가입하면 무제한으로 이용할 수 있어요!');
+          appendAIMsg('bot', '💡 무료 상담 3회를 모두 사용했어요. 회원가입하면 무제한으로 이용할 수 있어요!');
           setTimeout(() => showSignupModal(), 1500);
         }, 800);
       }
     }
   } catch(e) {
     document.getElementById(loadingId)?.remove();
-    appendMsg('bot', '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    appendAIMsg('bot', '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
   } finally {
     aiTyping = false;
     sendBtn.disabled = false;
   }
 }
 
-function appendMsg(role, text, id, isLoading = false) {
+function appendAIMsg(role, text, id, isLoading = false) {
   const body = document.getElementById('aiChatBody');
   const div = document.createElement('div');
   div.className = `ai-msg ai-msg--${role}${isLoading ? ' ai-msg-loading' : ''}`;
