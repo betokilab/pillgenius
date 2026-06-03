@@ -1292,16 +1292,177 @@ footer {
     <div class="loading" id="checkLoading"><span class="spinner"></span>분석 중...</div>
   </div>
 
-  <!-- ── Track B: 맞춤 큐레이션 ── -->
+  <!-- ── Track B: AI 상담 ── -->
   <section class="track-b">
     <div class="track-b__inner">
       <div class="speech-bubble">💬 처방받은 약, 다른 영양제와 같이 먹어도 괜찮을까?</div>
-      <button class="curation-cta" onclick="openQuiz()">
-        내 약통 안심 점검하기
+      <button class="curation-cta" onclick="openAIChat()">
+        ✨ AI 약천재에게 바로 물어보기
       </button>
-      <p class="trust-copy">식약처 DUR 기반 44,120개 의약품·영양제 상호작용 실시간 검증 완료</p>
+      <p class="trust-copy">무료 3회 체험 · 식약처 DUR 기반 44,120개 데이터 연동</p>
     </div>
   </section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     AI 상담 모달
+══════════════════════════════════════════════════════════════ -->
+<div class="ai-overlay" id="aiOverlay" onclick="closeAIChat()"></div>
+<div class="ai-modal" id="aiModal">
+  <div class="ai-modal-header">
+    <div class="ai-modal-title">
+      <span class="ai-modal-icon">✨</span>
+      <div>
+        <div class="ai-modal-name">AI 약천재 상담</div>
+        <div class="ai-modal-sub">식약처 DUR 기반 · 무료 <span id="aiTrialLeft">3</span>회 남음</div>
+      </div>
+    </div>
+    <button class="ai-modal-close" onclick="closeAIChat()">✕</button>
+  </div>
+  <div class="ai-chat-body" id="aiChatBody">
+    <div class="ai-msg ai-msg--bot">
+      <div class="ai-msg-bubble">안녕하세요! 저는 AI 약천재예요 💊<br>복용 중인 약이나 영양제에 대해 궁금한 점을 자유롭게 물어보세요.<br><br><strong>예시 질문:</strong><br>• 타이레놀이랑 오메가3 같이 먹어도 돼요?<br>• 와파린 복용 중 비타민K 먹으면 안 되나요?<br>• 칼슘제는 언제 먹는 게 가장 좋아요?</div>
+    </div>
+  </div>
+  <div class="ai-chat-input-wrap">
+    <textarea class="ai-chat-input" id="aiChatInput" placeholder="약이나 영양제에 대해 물어보세요..." rows="1" onkeydown="aiKeydown(event)"></textarea>
+    <button class="ai-chat-send" id="aiChatSend" onclick="sendAIMessage()">↑</button>
+  </div>
+</div>
+
+<!-- AI 상담 회원가입 유도 모달 -->
+<div class="ai-signup-overlay" id="aiSignupOverlay"></div>
+<div class="ai-signup-modal" id="aiSignupModal">
+  <div class="ai-signup-inner">
+    <div class="ai-signup-emoji">🔒</div>
+    <div class="ai-signup-title">무료 상담 3회를 모두 사용했어요</div>
+    <div class="ai-signup-desc">회원가입하면 AI 약천재 상담을 무제한으로 이용할 수 있어요. 복약 기록도 저장되고 더 정확한 맞춤 분석을 받을 수 있어요.</div>
+    <button class="ai-signup-cta" onclick="goSignup()">무료로 시작하기</button>
+    <button class="ai-signup-cancel" onclick="closeSignupModal()">나중에 할게요</button>
+  </div>
+</div>
+
+<style>
+/* ── AI 채팅 모달 ─────────────────────────────────────────── */
+.ai-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); z-index: 800;
+}
+.ai-overlay.open { display: block; }
+.ai-modal {
+  display: none; position: fixed;
+  bottom: 0; left: 0; right: 0;
+  max-height: 85vh;
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  z-index: 801;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ai-modal.open { display: flex; animation: aiSlideUp .35s cubic-bezier(.34,1.1,.64,1); }
+@keyframes aiSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@media (min-width: 641px) {
+  .ai-modal {
+    bottom: 24px; right: 24px; left: auto;
+    width: 420px; max-height: 600px;
+    border-radius: 24px;
+  }
+}
+.ai-modal-header {
+  padding: 20px 20px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid #F2F4F6;
+  flex-shrink: 0;
+}
+.ai-modal-title { display: flex; align-items: center; gap: 12px; }
+.ai-modal-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #3182F6, #60A5FA);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.ai-modal-name { font-size: 16px; font-weight: 700; color: #191F28; }
+.ai-modal-sub  { font-size: 12px; color: #8B95A1; margin-top: 2px; }
+.ai-modal-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #F2F4F6; border: none; font-size: 14px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.ai-chat-body {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.ai-msg { display: flex; }
+.ai-msg--bot { justify-content: flex-start; }
+.ai-msg--user { justify-content: flex-end; }
+.ai-msg-bubble {
+  max-width: 80%; padding: 12px 16px;
+  border-radius: 18px; font-size: 14px; line-height: 1.65;
+}
+.ai-msg--bot .ai-msg-bubble {
+  background: #F2F4F6; color: #191F28;
+  border-bottom-left-radius: 4px;
+}
+.ai-msg--user .ai-msg-bubble {
+  background: #3182F6; color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.ai-msg-loading .ai-msg-bubble {
+  background: #F2F4F6; color: #8B95A1;
+}
+.ai-chat-input-wrap {
+  padding: 12px 16px; border-top: 1px solid #F2F4F6;
+  display: flex; align-items: flex-end; gap: 10px;
+  flex-shrink: 0;
+}
+.ai-chat-input {
+  flex: 1; border: none; outline: none; resize: none;
+  font-family: 'Pretendard', sans-serif; font-size: 15px;
+  color: #191F28; background: transparent; line-height: 1.5;
+  max-height: 120px;
+}
+.ai-chat-input::placeholder { color: #B0B8C1; }
+.ai-chat-send {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #3182F6; color: #fff; border: none;
+  font-size: 16px; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.ai-chat-send:hover { background: #1B6EE4; }
+.ai-chat-send:disabled { background: #E5E8EB; cursor: not-allowed; }
+/* 회원가입 유도 모달 */
+.ai-signup-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 900;
+}
+.ai-signup-overlay.open { display: block; }
+.ai-signup-modal {
+  display: none; position: fixed;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(360px, 90vw); z-index: 901;
+  background: #fff; border-radius: 24px; overflow: hidden;
+}
+.ai-signup-modal.open { display: block; }
+.ai-signup-inner { padding: 36px 28px 28px; text-align: center; }
+.ai-signup-emoji { font-size: 48px; margin-bottom: 16px; }
+.ai-signup-title { font-size: 18px; font-weight: 800; color: #191F28; margin-bottom: 10px; }
+.ai-signup-desc { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 24px; }
+.ai-signup-cta {
+  width: 100%; padding: 16px; background: #3182F6; color: #fff;
+  border: none; border-radius: 14px; font-family: 'Pretendard', sans-serif;
+  font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px;
+  transition: background .15s;
+}
+.ai-signup-cta:hover { background: #1B6EE4; }
+.ai-signup-cancel {
+  width: 100%; padding: 12px; background: transparent; color: #8B95A1;
+  border: none; font-family: 'Pretendard', sans-serif; font-size: 14px;
+  cursor: pointer;
+}
+</style>
 
   <!-- 기능 카드 -->
   <div class="main-content">

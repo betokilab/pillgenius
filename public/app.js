@@ -1,5 +1,130 @@
 
 const API = ''; // 같은 서버이므로 빈 문자열 (상대경로)
+
+// ── AI 상담 ─────────────────────────────────────────────────
+const AI_FREE_LIMIT = 3;
+let aiTrialUsed = Number(localStorage.getItem('aiTrialUsed') || 0);
+let aiHistory = []; // { role, content }
+let aiTyping = false;
+
+function openAIChat() {
+  document.getElementById('aiOverlay').classList.add('open');
+  document.getElementById('aiModal').classList.add('open');
+  updateTrialBadge();
+  setTimeout(() => document.getElementById('aiChatInput').focus(), 400);
+}
+
+function closeAIChat() {
+  document.getElementById('aiOverlay').classList.remove('open');
+  document.getElementById('aiModal').classList.remove('open');
+}
+
+function updateTrialBadge() {
+  const left = Math.max(0, AI_FREE_LIMIT - aiTrialUsed);
+  const el = document.getElementById('aiTrialLeft');
+  if (el) el.textContent = left;
+}
+
+function aiKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendAIMessage();
+  }
+}
+
+async function sendAIMessage() {
+  if (aiTyping) return;
+  const input = document.getElementById('aiChatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  // 무료 횟수 체크
+  if (aiTrialUsed >= AI_FREE_LIMIT) {
+    showSignupModal();
+    return;
+  }
+
+  // 사용자 메시지 렌더
+  input.value = '';
+  input.style.height = 'auto';
+  appendMsg('user', msg);
+
+  // 로딩 표시
+  aiTyping = true;
+  const sendBtn = document.getElementById('aiChatSend');
+  sendBtn.disabled = true;
+  const loadingId = 'loading-' + Date.now();
+  appendMsg('bot', '...', loadingId, true);
+
+  try {
+    const res = await fetch('/api/ai-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, history: aiHistory })
+    });
+    const data = await res.json();
+
+    // 로딩 제거
+    document.getElementById(loadingId)?.remove();
+
+    const reply = data.reply || '답변을 받지 못했습니다.';
+    appendMsg('bot', reply);
+
+    // 히스토리 기록
+    aiHistory.push({ role: 'user', content: msg });
+    aiHistory.push({ role: 'assistant', content: reply });
+    if (aiHistory.length > 20) aiHistory = aiHistory.slice(-20); // 최근 10턴만 유지
+
+    // 사용 횟수 증가 (에러 아닐 때만)
+    if (!data.error) {
+      aiTrialUsed++;
+      localStorage.setItem('aiTrialUsed', aiTrialUsed);
+      updateTrialBadge();
+
+      // 마지막 무료 사용이면 안내 메시지
+      if (aiTrialUsed === AI_FREE_LIMIT) {
+        setTimeout(() => {
+          appendMsg('bot', '💡 무료 상담 3회를 모두 사용했어요. 회원가입하면 무제한으로 이용할 수 있어요!');
+          setTimeout(() => showSignupModal(), 1500);
+        }, 800);
+      }
+    }
+  } catch(e) {
+    document.getElementById(loadingId)?.remove();
+    appendMsg('bot', '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+  } finally {
+    aiTyping = false;
+    sendBtn.disabled = false;
+  }
+}
+
+function appendMsg(role, text, id, isLoading = false) {
+  const body = document.getElementById('aiChatBody');
+  const div = document.createElement('div');
+  div.className = `ai-msg ai-msg--${role}${isLoading ? ' ai-msg-loading' : ''}`;
+  if (id) div.id = id;
+  // 줄바꿈 변환
+  const html = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  div.innerHTML = `<div class="ai-msg-bubble">${html}</div>`;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+function showSignupModal() {
+  document.getElementById('aiSignupOverlay').classList.add('open');
+  document.getElementById('aiSignupModal').classList.add('open');
+}
+
+function closeSignupModal() {
+  document.getElementById('aiSignupOverlay').classList.remove('open');
+  document.getElementById('aiSignupModal').classList.remove('open');
+}
+
+function goSignup() {
+  // 추후 회원가입 페이지 연결
+  alert('회원가입 기능은 곧 오픈됩니다! 기대해주세요 🎉');
+  closeSignupModal();
+}
 let slots = [null, null]; // { seq, name } or null
 let slotCount = 2;
 let searchCategory = 'all';

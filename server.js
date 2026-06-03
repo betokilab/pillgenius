@@ -399,6 +399,63 @@ app.post('/api/admin/interactions', (req, res) => {
   res.json({ success: true });
 });
 
+// ── AI 상담 ───────────────────────────────────────────────────
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
+const AI_SYSTEM = `당신은 약천재(Pill Genius)의 AI 약사 상담 서비스입니다.
+식약처 DUR 기반의 의약품·영양제 상호작용 정보를 제공합니다.
+
+역할과 규칙:
+- 약물 상호작용, 복용법, 주의사항, 영양제 조합에 대해 친절하고 명확하게 답변
+- 한국인 영양소 섭취기준(2020)을 기반으로 영양제 정보 제공
+- 의료 진단, 처방, 치료 행위는 절대 하지 않음
+- 심각한 증상이나 응급 상황은 즉시 전문의 상담 권고
+- 항상 "의사나 약사와 상담하세요"로 마무리
+- 답변은 간결하고 핵심 위주로 (200자 이내 권장)
+- 친근하고 이해하기 쉬운 말투 사용 (존댓말)
+- 위험한 상호작용이 있으면 ⚠️ 로 강조`;
+
+app.post('/api/ai-chat', async (req, res) => {
+  const { message, history = [] } = req.body;
+  if (!message) return res.status(400).json({ error: '메시지가 없습니다' });
+
+  if (!ANTHROPIC_KEY) {
+    return res.json({
+      reply: '현재 AI 상담 서비스를 준비 중입니다. 잠시 후 다시 시도해 주세요.',
+      error: 'no_key'
+    });
+  }
+
+  try {
+    const messages = [
+      ...history.map(h => ({ role: h.role, content: h.content })),
+      { role: 'user', content: message }
+    ];
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        system: AI_SYSTEM,
+        messages
+      })
+    });
+
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    const reply = data.content?.[0]?.text || '답변을 생성하지 못했습니다.';
+    res.json({ reply });
+  } catch (e) {
+    console.error('[AI Chat]', e.message);
+    res.status(500).json({ error: e.message, reply: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' });
+  }
+});
+
 // ── SPA 라우팅 ────────────────────────────────────────────────
 app.get('/admin*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('*',       (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
