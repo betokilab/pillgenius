@@ -1196,6 +1196,7 @@ footer {
   .nav-links { display: none; }
   nav { padding: 0 16px; }
   #navAuthBtn { display: none; }
+  #navFeedbackBtn { display: none; }
   .track-a { padding: 40px 20px 36px; }
   .track-a__headline { font-size: 28px; }
   .search-input-wrap input { font-size: 15px; }
@@ -1234,7 +1235,7 @@ footer {
     <button class="nav-link" onclick="showPage('nutrition',this)">📸 영양 분석</button>
   </div>
   <!-- 데스크탑 우측 버튼들 -->
-  <button onclick="openFeedback()" style="margin-left:auto;margin-right:8px;padding:7px 14px;border:1.5px solid #E5E8EB;border-radius:999px;background:#fff;font-family:'Pretendard',sans-serif;font-size:13px;font-weight:600;color:#8B95A1;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;" onmouseover="this.style.borderColor='#3182F6';this.style.color='#3182F6'" onmouseout="this.style.borderColor='#E5E8EB';this.style.color='#8B95A1'">💬 의견</button>
+  <button id="navFeedbackBtn" onclick="openFeedback()" style="margin-left:auto;margin-right:8px;padding:7px 14px;border:1.5px solid #E5E8EB;border-radius:999px;background:#fff;font-family:'Pretendard',sans-serif;font-size:13px;font-weight:600;color:#8B95A1;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;" onmouseover="this.style.borderColor='#3182F6';this.style.color='#3182F6'" onmouseout="this.style.borderColor='#E5E8EB';this.style.color='#8B95A1'">💬 의견</button>
   <button id="navAuthBtn" style="margin-right:0;padding:7px 16px;border:1.5px solid #E5E8EB;border-radius:999px;background:#fff;font-family:'Pretendard',sans-serif;font-size:13px;font-weight:600;color:#333D4B;cursor:pointer;transition:border-color .15s;white-space:nowrap;" onmouseover="this.style.borderColor='#3182F6'" onmouseout="this.style.borderColor='#E5E8EB'">로그인</button>
   <!-- 햄버거 버튼 (모바일 전용) -->
   <button class="hamburger" id="hamburgerBtn" onclick="toggleDrawer()" aria-label="메뉴">
