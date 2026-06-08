@@ -1,16 +1,66 @@
 
 const API = ''; // 같은 서버이므로 빈 문자열 (상대경로)
 
+// ── Auth ────────────────────────────────────────────────────
+function getToken()  { return localStorage.getItem('pg_token'); }
+function getEmail()  { return localStorage.getItem('pg_email'); }
+function isMember()  { return !!getToken(); }
+
+function initAuthUI() {
+  const token = getToken();
+  const email = getEmail();
+  const name  = email ? email.split('@')[0] : '';
+
+  // 데스크탑 네비 버튼
+  const navEl = document.getElementById('navAuthBtn');
+  if (navEl) {
+    if (token && email) {
+      navEl.textContent = name;
+      navEl.onclick = doLogout;
+    } else {
+      navEl.textContent = '로그인';
+      navEl.onclick = () => { window.location.href = '/signup'; };
+    }
+  }
+
+  // 모바일 드로어 버튼
+  const drawerLabel = document.getElementById('drawerAuthLabel');
+  if (drawerLabel) {
+    drawerLabel.textContent = token ? `${name}님 · 로그아웃` : '로그인 / 회원가입';
+  }
+}
+
+function drawerAuthAction() {
+  closeDrawer();
+  if (isMember()) doLogout();
+  else window.location.href = '/signup';
+}
+
+function doLogout() {
+  if (confirm('로그아웃 하시겠어요?')) {
+    localStorage.removeItem('pg_token');
+    localStorage.removeItem('pg_email');
+    location.reload();
+  }
+}
+
 // ── AI 상담 ─────────────────────────────────────────────────
 const AI_FREE_LIMIT = 3;
 let aiTrialUsed = Number(localStorage.getItem('aiTrialUsed') || 0);
-let aiHistory = []; // { role, content }
+let aiHistory = [];
 let aiTyping = false;
 
 function openAIChat() {
   document.getElementById('aiOverlay').classList.add('open');
   document.getElementById('aiModal').classList.add('open');
   updateTrialBadge();
+  // 회원이면 무제한 안내
+  const subEl = document.getElementById('aiModalSub');
+  if (subEl) {
+    subEl.textContent = isMember()
+      ? `${getEmail()?.split('@')[0]}님 · AI 상담 무제한`
+      : `식약처 DUR 기반 · 무료 ${Math.max(0, AI_FREE_LIMIT - aiTrialUsed)}회 남음`;
+  }
   setTimeout(() => document.getElementById('aiChatInput').focus(), 400);
 }
 
@@ -38,8 +88,8 @@ async function sendAIMessage() {
   const msg = input.value.trim();
   if (!msg) return;
 
-  // 무료 횟수 체크
-  if (aiTrialUsed >= AI_FREE_LIMIT) {
+  // 무료 횟수 체크 (비회원만)
+  if (!isMember() && aiTrialUsed >= AI_FREE_LIMIT) {
     showSignupModal();
     return;
   }
@@ -47,7 +97,7 @@ async function sendAIMessage() {
   // 사용자 메시지 렌더
   input.value = '';
   input.style.height = 'auto';
-  appendMsg('user', msg);
+  appendAIMsg('user', msg);
 
   // 로딩 표시
   aiTyping = true;
@@ -60,7 +110,7 @@ async function sendAIMessage() {
     const res = await fetch('/api/ai-chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg, history: aiHistory })
+      body: JSON.stringify({ message: msg, history: aiHistory, token: getToken() || undefined })
     });
     const data = await res.json();
 
@@ -82,7 +132,7 @@ async function sendAIMessage() {
       updateTrialBadge();
 
       // 마지막 무료 사용이면 안내 메시지
-      if (aiTrialUsed === AI_FREE_LIMIT) {
+      if (!isMember() && aiTrialUsed === AI_FREE_LIMIT) {
         setTimeout(() => {
           appendAIMsg('bot', '💡 무료 상담 3회를 모두 사용했어요. 회원가입하면 무제한으로 이용할 수 있어요!');
           setTimeout(() => showSignupModal(), 1500);
@@ -121,9 +171,7 @@ function closeSignupModal() {
 }
 
 function goSignup() {
-  // 추후 회원가입 페이지 연결
-  alert('회원가입 기능은 곧 오픈됩니다! 기대해주세요 🎉');
-  closeSignupModal();
+  window.location.href = '/signup';
 }
 let slots = [null, null]; // { seq, name } or null
 let slotCount = 2;
@@ -635,6 +683,57 @@ function showPage(name, btn, fromTab) {
 
   window.scrollTo(0, 0);
 }
+
+// ── 피드백 ──────────────────────────────────────────────────
+let fbRating = 0;
+
+function openFeedback() {
+  document.getElementById('fbOverlay').classList.add('open');
+  document.getElementById('fbModal').classList.add('open');
+}
+function closeFeedback() {
+  document.getElementById('fbOverlay').classList.remove('open');
+  document.getElementById('fbModal').classList.remove('open');
+}
+function setRating(n) {
+  fbRating = n;
+  document.querySelectorAll('.fb-star').forEach((s, i) => {
+    s.classList.toggle('active', i < n);
+  });
+}
+async function submitFeedback() {
+  const message = document.getElementById('fbText').value.trim();
+  const btn = document.getElementById('fbSubmit');
+  if (!message && !fbRating) { toast('별점이나 의견을 입력해주세요'); return; }
+  btn.disabled = true;
+  btn.textContent = '전송 중...';
+  try {
+    await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rating: fbRating, message, page: location.pathname })
+    });
+    closeFeedback();
+    toast('소중한 의견 감사해요 💙');
+    document.getElementById('fbText').value = '';
+    fbRating = 0;
+    document.querySelectorAll('.fb-star').forEach(s => s.classList.remove('active'));
+  } catch(e) {
+    toast('전송 실패. 잠시 후 다시 시도해주세요.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '의견 보내기';
+  }
+}
+
+// 초기화
+document.addEventListener('DOMContentLoaded', () => {
+  initAuthUI();
+  renderDrugTags();
+  renderSymptoms();
+  renderAlarms();
+  updatePermBadge();
+});
 
 // ── 통계 로드 ──────────────────────────────────────────────
 async function loadStats() {
@@ -1316,25 +1415,44 @@ function renderNutrTable(extracted = {}) {
   document.getElementById('nutrInputStep').style.display = '';
 }
 
+async function imageToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function callClaudeOCR(file) {
+  const base64 = await imageToBase64(file);
+  const mediaType = file.type || 'image/jpeg';
+  const res = await fetch('/api/ocr', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: base64, mediaType })
+  });
+  const data = await res.json();
+  return data.nutrients || {};
+}
+
 async function handleNutrImage(input) {
   const file = input.files[0];
   if (!file) return;
-  // 미리보기
   const preview = document.getElementById('nutrPreview');
   preview.src = URL.createObjectURL(file);
   preview.style.display = 'block';
-  // OCR
   document.getElementById('ocrLoading').style.display = 'block';
   document.getElementById('nutrInputStep').style.display = 'none';
   try {
-    const result = await Tesseract.recognize(file, 'kor+eng', {
-      logger: () => {}
-    });
-    const text = result.data.text;
-    const extracted = parseNutrText(text);
-    renderNutrTable(extracted);
+    const nutrients = await callClaudeOCR(file);
+    renderNutrTable(nutrients);
+    const found = Object.values(nutrients).filter(v => v > 0).length;
+    if (found > 0) toast(`📷 ${found}개 영양소를 인식했어요! 값을 확인해 주세요.`);
+    else toast('인식된 영양소가 없어요. 직접 입력해 주세요.');
   } catch(e) {
     renderNutrTable({});
+    toast('OCR 오류. 직접 입력해 주세요.');
   } finally {
     document.getElementById('ocrLoading').style.display = 'none';
   }
@@ -1454,40 +1572,27 @@ function renderMainNutrFields(extracted = {}) {
   document.getElementById('mainNutrInputArea').style.display = '';
 }
 
-// OCR.space API로 이미지 분석
+// Claude Vision OCR로 이미지 분석
 async function handleMainNutrImage(input) {
   const file = input.files[0];
   if (!file) return;
-  // 미리보기
   const thumb = document.getElementById('mainNutrThumb');
   const preview = document.getElementById('mainNutrPreview');
   preview.src = URL.createObjectURL(file);
   thumb.style.display = '';
-  // OCR
   const loadingEl = document.getElementById('mainOcrLoading');
   loadingEl.style.display = 'block';
   document.getElementById('mainNutrInputArea').style.display = 'none';
   document.getElementById('mainNutrResult').style.display = 'none';
   try {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('language', 'kor');
-    formData.append('isOverlayRequired', 'false');
-    formData.append('OCREngine', '2');
-    formData.append('scale', 'true');
-    const resp = await fetch('https://api.ocr.space/parse/image', {
-      method: 'POST',
-      headers: { 'apikey': 'helloworld' },
-      body: formData
-    });
-    const data = await resp.json();
-    const text = data?.ParsedResults?.[0]?.ParsedText || '';
-    renderMainNutrFields(parseNutrText(text));
-    if (text) toast('📷 영양성분표를 인식했어요! 값을 확인해 주세요.');
-    else { renderMainNutrFields({}); toast('인식이 어려워요. 직접 입력해 주세요.'); }
+    const nutrients = await callClaudeOCR(file);
+    renderMainNutrFields(nutrients);
+    const found = Object.values(nutrients).filter(v => v > 0).length;
+    if (found > 0) toast(`📷 ${found}개 영양소를 인식했어요! 값을 확인해 주세요.`);
+    else toast('인식이 어려워요. 직접 입력해 주세요.');
   } catch {
     renderMainNutrFields({});
-    toast('OCR 오류가 발생했어요. 직접 입력해 주세요.');
+    toast('OCR 오류. 직접 입력해 주세요.');
   } finally {
     loadingEl.style.display = 'none';
   }
