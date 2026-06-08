@@ -3,11 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>약천재 Pill Genius — 약/영양제 상호작용 팩트체커</title>
+<title>약천재 Pill Genius — 무료 의약품·영양제 상호작용 팩트체커 | 식약처 DUR</title>
 <meta name="description" content="타이레놀과 오메가3 같이 먹어도 될까? 약천재 Pill Genius에서 3초 만에 확인하세요. 식약처 DUR 기반 44,120개 의약품·영양제 상호작용 무료 팩트체크 서비스입니다.">
-<meta name="keywords" content="약천재, 영양제 상호작용, 의약품 상호작용, 약 복용, 영양제 팩트체커, 식약처, DUR, pillgenius">
+<meta name="keywords" content="약천재, 영양제 상호작용, 의약품 상호작용, 약 복용, 영양제 팩트체커, 식약처, DUR, pillgenius, 약 부작용, 복약 가이드">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.pillgenius.co.kr/">
+<link rel="alternate" hreflang="ko" href="https://www.pillgenius.co.kr/">
+<link rel="alternate" hreflang="x-default" href="https://www.pillgenius.co.kr/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "약천재 Pill Genius",
+  "url": "https://www.pillgenius.co.kr",
+  "description": "식약처 DUR 기반 44,120개 의약품·영양제 상호작용 무료 팩트체크 서비스",
+  "applicationCategory": "HealthApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "ko",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" },
+  "creator": { "@type": "Organization", "name": "약천재", "url": "https://www.pillgenius.co.kr" },
+  "featureList": ["의약품 상호작용 분석", "영양제 상호작용 분석", "복약 가이드", "AI 약사 상담"],
+  "screenshot": "https://www.pillgenius.co.kr/og-image.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "타이레놀과 오메가3 같이 먹어도 되나요?", "acceptedAnswer": { "@type": "Answer", "text": "타이레놀(아세트아미노펜)과 오메가3는 일반적으로 함께 복용해도 안전합니다. 약천재에서 더 자세히 확인하세요." } },
+    { "@type": "Question", "name": "와파린 복용 중 비타민K 먹으면 안 되나요?", "acceptedAnswer": { "@type": "Answer", "text": "와파린 복용 중 비타민K가 풍부한 식품이나 보충제는 약효를 방해할 수 있어 주의가 필요합니다." } },
+    { "@type": "Question", "name": "영양제와 약을 함께 먹어도 되나요?", "acceptedAnswer": { "@type": "Answer", "text": "영양제와 의약품의 상호작용은 제품마다 다릅니다. 약천재에서 식약처 DUR 기반으로 안전하게 확인하세요." } }
+  ]
+}
+</script>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
@@ -994,6 +1023,74 @@ footer {
   line-height: 1.7;
 }
 
+/* ── BETA 뱃지 ──────────────────────────────────────── */
+.beta-badge {
+  display: inline-block;
+  margin-left: 7px;
+  padding: 2px 7px;
+  background: linear-gradient(135deg, #3182F6, #60A5FA);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  border-radius: 999px;
+  vertical-align: middle;
+  line-height: 1.6;
+}
+
+
+/* ── 피드백 모달 ─────────────────────────────────────── */
+.fb-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4); z-index: 700;
+}
+.fb-overlay.open { display: block; }
+.fb-modal {
+  display: none; position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  padding: 28px 24px 40px;
+  z-index: 701;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.fb-modal.open { display: block; animation: fbSlide .3s cubic-bezier(.34,1.1,.64,1); }
+@keyframes fbSlide { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@media (min-width: 641px) {
+  .fb-modal { bottom: auto; top: 50%; left: 50%; right: auto;
+    transform: translate(-50%, -50%); border-radius: 24px; width: 400px; }
+  .fb-modal.open { animation: none; }
+}
+.fb-title { font-size: 18px; font-weight: 800; color: #191F28; margin-bottom: 6px; }
+.fb-sub   { font-size: 13px; color: #8B95A1; margin-bottom: 20px; line-height: 1.6; }
+.fb-stars { display: flex; gap: 8px; margin-bottom: 18px; }
+.fb-star {
+  font-size: 32px; cursor: pointer; transition: transform .1s;
+  filter: grayscale(1); opacity: .4;
+}
+.fb-star.active, .fb-star:hover { filter: none; opacity: 1; transform: scale(1.15); }
+.fb-textarea {
+  width: 100%; padding: 14px; border: 1.5px solid #E5E8EB; border-radius: 14px;
+  font-family: 'Pretendard', sans-serif; font-size: 14px; color: #191F28;
+  resize: none; outline: none; line-height: 1.6; margin-bottom: 14px;
+  transition: border-color .15s;
+}
+.fb-textarea:focus { border-color: #3182F6; }
+.fb-submit {
+  width: 100%; padding: 15px; background: #3182F6; color: #fff;
+  border: none; border-radius: 14px; font-family: 'Pretendard', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: background .15s;
+}
+.fb-submit:hover { background: #1B6EE4; }
+.fb-submit:disabled { background: #B0B8C1; cursor: not-allowed; }
+.fb-close {
+  position: absolute; top: 20px; right: 20px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #F2F4F6; border: none; font-size: 14px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
 /* ── 햄버거 버튼 ────────────────────────────────────── */
 .hamburger {
   display: none;
@@ -1041,8 +1138,9 @@ footer {
   display: flex;
   flex-direction: column;
   box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+  pointer-events: none;
 }
-.drawer.open { transform: translateX(0); }
+.drawer.open { transform: translateX(0); pointer-events: auto; }
 .drawer-header {
   display: flex;
   align-items: center;
@@ -1085,9 +1183,19 @@ footer {
 /* ── 반응형 ─────────────────────────────────────────── */
 @media (max-width: 640px) {
   .feature-grid { grid-template-columns: repeat(2,1fr); }
-  .cab-grid { grid-template-columns: 1fr; }
+  .cab-grid { grid-template-columns: 1fr; padding: 0 16px; margin: 16px auto; }
+  .page-header { padding: 24px 16px 20px; }
+  .page-header h1, .page-header h2 { font-size: 20px; }
+  .cab-header { font-size: 14px; padding: 14px 16px; }
+  .cab-grid { width: 100%; }
+  .cab-card { width: 100%; overflow: hidden; }
+  .cab-form { padding: 12px 14px; }
+  .alarm-time-input { width: 90px; font-size: 13px; padding: 8px 10px; }
+  .alarm-label-input { font-size: 13px; padding: 8px 10px; min-width: 0; }
+  .alarm-add-btn { font-size: 13px; padding: 8px 12px; flex-shrink: 0; }
   .nav-links { display: none; }
   nav { padding: 0 16px; }
+  #navAuthBtn { display: none; }
   .track-a { padding: 40px 20px 36px; }
   .track-a__headline { font-size: 28px; }
   .search-input-wrap input { font-size: 15px; }
@@ -1116,6 +1224,7 @@ footer {
     <span class="nav-logo-ko">약천재</span>
     <span class="nav-logo-divider"></span>
     <span class="nav-logo-en">Pill Genius</span>
+    <span class="beta-badge">BETA</span>
   </span>
   <div class="nav-links">
     <button class="nav-link active" onclick="showPage('home',this)">상호작용 체크</button>
@@ -1124,6 +1233,9 @@ footer {
     <button class="nav-link" onclick="showPage('guide',this)">복약 가이드</button>
     <button class="nav-link" onclick="showPage('nutrition',this)">📸 영양 분석</button>
   </div>
+  <!-- 데스크탑 우측 버튼들 -->
+  <button onclick="openFeedback()" style="margin-left:auto;margin-right:8px;padding:7px 14px;border:1.5px solid #E5E8EB;border-radius:999px;background:#fff;font-family:'Pretendard',sans-serif;font-size:13px;font-weight:600;color:#8B95A1;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;" onmouseover="this.style.borderColor='#3182F6';this.style.color='#3182F6'" onmouseout="this.style.borderColor='#E5E8EB';this.style.color='#8B95A1'">💬 의견</button>
+  <button id="navAuthBtn" style="margin-right:0;padding:7px 16px;border:1.5px solid #E5E8EB;border-radius:999px;background:#fff;font-family:'Pretendard',sans-serif;font-size:13px;font-weight:600;color:#333D4B;cursor:pointer;transition:border-color .15s;white-space:nowrap;" onmouseover="this.style.borderColor='#3182F6'" onmouseout="this.style.borderColor='#E5E8EB'">로그인</button>
   <!-- 햄버거 버튼 (모바일 전용) -->
   <button class="hamburger" id="hamburgerBtn" onclick="toggleDrawer()" aria-label="메뉴">
     <span></span><span></span><span></span>
@@ -1160,10 +1272,38 @@ footer {
     <button class="drawer-item" onclick="showPage('nutrition');closeDrawer()">
       <span class="drawer-item__icon">📸</span>영양 분석
     </button>
+    <button class="drawer-item" onclick="openQuiz();closeDrawer()">
+      <span class="drawer-item__icon">🎯</span>맞춤 영양제 추천
+    </button>
+    <div style="height:1px;background:#F2F4F6;margin:8px 0;"></div>
+    <button class="drawer-item" onclick="openFeedback();closeDrawer()">
+      <span class="drawer-item__icon">💬</span>의견 보내기
+    </button>
+    <button class="drawer-item" id="drawerAuthBtn" onclick="drawerAuthAction()">
+      <span class="drawer-item__icon">👤</span><span id="drawerAuthLabel">로그인 / 회원가입</span>
+    </button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- feedback modal -->
+<div class="fb-overlay" id="fbOverlay" onclick="closeFeedback()"></div>
+<div class="fb-modal" id="fbModal">
+  <button class="fb-close" onclick="closeFeedback()">✕</button>
+  <div class="fb-title">베타 서비스 의견 보내기</div>
+  <div class="fb-sub">약천재를 더 좋게 만들기 위해<br>솔직한 의견을 들려주세요 🙏</div>
+  <div class="fb-stars" id="fbStars">
+    <span class="fb-star" onclick="setRating(1)">⭐</span>
+    <span class="fb-star" onclick="setRating(2)">⭐</span>
+    <span class="fb-star" onclick="setRating(3)">⭐</span>
+    <span class="fb-star" onclick="setRating(4)">⭐</span>
+    <span class="fb-star" onclick="setRating(5)">⭐</span>
+  </div>
+  <textarea class="fb-textarea" id="fbText" rows="4"
+    placeholder="불편한 점, 원하는 기능, 개선 아이디어 무엇이든 괜찮아요!"></textarea>
+  <button class="fb-submit" id="fbSubmit" onclick="submitFeedback()">의견 보내기</button>
+</div>
 
 <!-- ===== 홈 ===== -->
 <div class="page active" id="page-home">
@@ -1248,7 +1388,7 @@ footer {
 
         <!-- 미리보기 썸네일 -->
         <div id="mainNutrThumb" style="display:none" class="nn-thumb-wrap">
-          <img id="mainNutrPreview" class="nn-thumb-img" alt="">
+          <img id="mainNutrPreview" class="nn-thumb-img" alt="영양성분표 미리보기" loading="lazy">
           <div class="ocr-loading" id="mainOcrLoading" style="display:none">
             <div class="ocr-spinner"></div>영양성분표 분석 중...
           </div>
@@ -1313,7 +1453,7 @@ footer {
       <span class="ai-modal-icon">✨</span>
       <div>
         <div class="ai-modal-name">AI 약천재 상담</div>
-        <div class="ai-modal-sub">식약처 DUR 기반 · 무료 <span id="aiTrialLeft">3</span>회 남음</div>
+        <div class="ai-modal-sub" id="aiModalSub">식약처 DUR 기반 · 무료 <span id="aiTrialLeft">3</span>회 남음</div>
       </div>
     </div>
     <button class="ai-modal-close" onclick="closeAIChat()">✕</button>
@@ -1503,8 +1643,13 @@ footer {
 
   <footer>
     <div class="footer-inner">
+      <div style="display:flex;gap:16px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;">
+        <a href="https://www.instagram.com/pill.genius" rel="noopener" target="_blank" style="color:#8B95A1;text-decoration:none;font-size:13px;" aria-label="인스타그램">📷 인스타그램</a>
+        <a href="https://blog.naver.com/pillwiz" rel="noopener" target="_blank" style="color:#8B95A1;text-decoration:none;font-size:13px;" aria-label="네이버블로그">📝 네이버 블로그</a>
+        <a href="mailto:heech10@gmail.com" style="color:#8B95A1;text-decoration:none;font-size:13px;" aria-label="이메일">✉️ 문의하기</a>
+      </div>
       약천재는 정보 제공 서비스입니다. 의학적 진단·처방을 대체하지 않으며, 최종 판단은 의사·약사에게 맡기세요.<br>
-      데이터 출처: 식품의약품안전처 공공데이터 · DUR 의약품안전사용서비스 &copy; 약천재
+      데이터 출처: 식품의약품안전처 공공데이터 · DUR 의약품안전사용서비스 &copy; 약천재 2025
     </div>
   </footer>
 </div>
@@ -1513,7 +1658,7 @@ footer {
 <div class="page" id="page-cabinet">
   <div class="page-header">
     <div class="page-header-inner">
-      <h1>💊 내 약통</h1>
+      <h2>💊 내 약통</h2>
       <p>매일 먹는 약을 담아두고, 전체 조합이 안전한지 한 번에 확인하세요</p>
     </div>
   </div>
@@ -1563,7 +1708,7 @@ footer {
 <div class="page" id="page-symptoms">
   <div class="page-header">
     <div class="page-header-inner">
-      <h1>🔍 증상으로 찾기</h1>
+      <h2>🔍 증상으로 찾기</h2>
       <p>증상을 선택하면 관련 의약품과 주의사항을 찾아드립니다</p>
     </div>
   </div>
@@ -1578,7 +1723,7 @@ footer {
 <div class="page" id="page-guide">
   <div class="page-header">
     <div class="page-header-inner">
-      <h1>📚 복약 가이드</h1>
+      <h2>📚 복약 가이드</h2>
       <p>약 먹을 때 꼭 알아야 할 필수 정보</p>
     </div>
   </div>
@@ -2099,7 +2244,7 @@ footer {
 <div class="page" id="page-nutrition">
   <div class="page-header">
     <div class="page-header-inner">
-      <h1>📸 영양 분석</h1>
+      <h2>📸 영양 분석</h2>
       <p>영양성분표를 찍으면 내 나이에 맞는지 분석해 드려요</p>
     </div>
   </div>
@@ -2127,7 +2272,7 @@ footer {
         <div class="photo-upload-area__title">사진을 촬영하거나 업로드하세요</div>
         <div class="photo-upload-area__sub">영양성분표가 잘 보이도록 찍어주세요<br>JPG, PNG, HEIC 지원</div>
       </div>
-      <img id="nutrPreview" class="photo-preview" alt="미리보기">
+      <img id="nutrPreview" class="photo-preview" alt="영양성분표 미리보기" loading="lazy">
       <div class="ocr-loading" id="ocrLoading">
         <div class="ocr-spinner"></div>
         영양성분표를 읽는 중이에요...
@@ -2155,6 +2300,6 @@ footer {
   </div>
 </div>
 
-<script src="/app.js"></script>
+<script src="/app.js" defer></script>
 </body>
 </html>
